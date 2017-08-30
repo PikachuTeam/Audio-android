@@ -55,23 +55,33 @@ abstract class BaseFragment : Fragment(), BaseContract.View {
     fun replaceFragment1(fragment: BaseFragment,
                          @IdRes frameId: Int = R.id.fragment_container, tag: String? = null,
                          @IdRes enter: Int = R.animator.slide_up, @IdRes exit: Int = R.animator.slide_down) {
-        var fragmentTransaction = fragmentManager.beginTransaction()
-                .setCustomAnimations(enter, exit)
-                .replace(frameId, fragment)
-        if (!tag.isNullOrBlank())
-            fragmentTransaction = fragmentTransaction.addToBackStack(tag)
-        fragmentTransaction.commit()
+        fragmentManager.beginTransaction().apply {
+            setCustomAnimations(enter, exit)
+            replace(frameId, fragment)
+            if (!tag.isNullOrBlank())
+                addToBackStack(tag)
+        }.commit()
     }
 
     fun replaceFragment2(fragment: BaseFragment,
                          @IdRes frameId: Int = R.id.fragment_container, tag: String? = null,
                          @IdRes enter: Int = R.animator.slide_in_left, @IdRes exit: Int = R.animator.slide_out_right,
                          @IdRes popEnter: Int = R.animator.slide_in_right, @IdRes popExit: Int = R.animator.slide_out_left) {
-        var fragmentTransaction = fragmentManager.beginTransaction()
-                .setCustomAnimations(enter, exit, popEnter, popExit)
-                .replace(frameId, fragment)
-        if (!tag.isNullOrBlank())
-            fragmentTransaction = fragmentTransaction.addToBackStack(tag)
-        fragmentTransaction.commit()
+        fragmentManager.beginTransaction().apply {
+            setCustomAnimations(enter, exit, popEnter, popExit)
+            replace(frameId, fragment)
+            if (!tag.isNullOrBlank())
+                addToBackStack(tag)
+        }.commit()
+    }
+
+    fun checkAndRequestPermissions(requestCode: Int, permissions: Array<String>): Boolean {
+        return getFragmentActivity()?.checkAndRequestPermissions(requestCode, permissions) ?: false
+    }
+
+    open fun onPermissionGranted(requestCode: Int) {
+    }
+
+    open fun onPermissionDenied() {
     }
 }

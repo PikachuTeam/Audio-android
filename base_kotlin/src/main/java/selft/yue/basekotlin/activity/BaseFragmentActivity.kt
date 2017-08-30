@@ -23,6 +23,14 @@ abstract class BaseFragmentActivity : BaseActivity() {
             super.onBackPressed()
     }
 
+    override fun onPermissionGranted(requestCode: Int) {
+        getCurrentFragment().onPermissionGranted(requestCode)
+    }
+
+    override fun onPermissionDenied() {
+        getCurrentFragment().onPermissionDenied()
+    }
+
     abstract fun getFirstFragment(): BaseFragment
 
     fun getCurrentFragment(): BaseFragment =

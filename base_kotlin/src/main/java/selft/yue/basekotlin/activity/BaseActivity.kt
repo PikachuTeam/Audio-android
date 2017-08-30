@@ -22,7 +22,7 @@ abstract class BaseActivity : AppCompatActivity(), BaseContract.View {
             if (grantResults.indices.firstOrNull { grantResults[it] == PackageManager.PERMISSION_DENIED } != null)
                 onPermissionDenied()
             else
-                onPermissionGranted()
+                onPermissionGranted(requestCode)
         } else {
             onPermissionDenied()
         }
@@ -44,18 +44,32 @@ abstract class BaseActivity : AppCompatActivity(), BaseContract.View {
         shortToast(messageId)
     }
 
-    fun checkPermission(permission: String): Boolean =
-            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+    fun checkAndRequestPermissions(requestCode: Int, permissions: Array<String>): Boolean =
+            permissions.filter { !checkPermission(it) }.let {
+                if (it.isEmpty()) {
+                    true
+                } else {
+                    ActivityCompat.requestPermissions(this, it.toTypedArray(), requestCode)
+                    false
+                }
+            }
 
-    fun requestPermission(permission: String, requestCode: Int) {
-        if (!checkPermission(permission)) {
-            ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+    fun ifNotNull(vararg values: Any?, allNotNull: ((Array<Any>) -> Unit)? = null): Boolean {
+        values.forEach {
+            if (it == null) {
+                return false
+            }
         }
+        allNotNull?.invoke(values as Array<Any>)
+        return true
     }
 
-    fun onPermissionGranted() {
+    open fun onPermissionGranted(requestCode: Int) {
     }
 
-    fun onPermissionDenied() {
+    open fun onPermissionDenied() {
     }
+
+    private fun checkPermission(permission: String): Boolean =
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 }
