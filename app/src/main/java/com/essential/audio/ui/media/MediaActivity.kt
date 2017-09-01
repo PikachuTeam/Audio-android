@@ -12,6 +12,10 @@ import selft.yue.basekotlin.extension.getRealColor
  * Created by dongc on 8/31/2017.
  */
 class MediaActivity : BaseActivity(), MediaContract.View {
+    override fun aloha() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     private val mPresenter: MediaContract.Presenter<MediaContract.View> = MediaPresenter(this)
 
     private val mToolbar: Toolbar by lazy { toolbar }
@@ -42,9 +46,5 @@ class MediaActivity : BaseActivity(), MediaContract.View {
         }
 
         mToolbar.setTitleTextColor(getRealColor(R.color.white))
-    }
-
-    private fun aloha(){
-
     }
 }

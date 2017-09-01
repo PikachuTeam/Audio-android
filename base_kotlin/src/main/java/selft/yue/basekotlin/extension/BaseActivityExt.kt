@@ -1,7 +1,6 @@
 package selft.yue.basekotlin.extension
 
 import android.support.annotation.IdRes
-import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import selft.yue.basekotlin.activity.BaseActivity
 
@@ -24,5 +23,3 @@ fun BaseActivity.longToast(message: String) {
 fun BaseActivity.longToast(@IdRes messageResId: Int) {
     Toast.makeText(this, getString(messageResId), Toast.LENGTH_LONG).show()
 }
-
-fun BaseActivity.getRealColor(@IdRes colorResId: Int): Int = ContextCompat.getColor(this, colorResId)

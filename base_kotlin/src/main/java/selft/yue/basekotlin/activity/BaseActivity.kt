@@ -1,10 +1,12 @@
 package selft.yue.basekotlin.activity
 
+import android.app.Dialog
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import selft.yue.basekotlin.R
 import selft.yue.basekotlin.common.BaseContract
 import selft.yue.basekotlin.extension.shortToast
 
@@ -12,6 +14,8 @@ import selft.yue.basekotlin.extension.shortToast
  * Created by dongc on 8/26/2017.
  */
 abstract class BaseActivity : AppCompatActivity(), BaseContract.View {
+    private var mLoadingDialog: Dialog? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(getLayoutResId())
@@ -29,11 +33,23 @@ abstract class BaseActivity : AppCompatActivity(), BaseContract.View {
     }
 
     override fun showLoadingDialog() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (mLoadingDialog == null) {
+            mLoadingDialog = Dialog(this, R.style.Dialog_Transparent_NoTitle_FullScreen).apply {
+                setCancelable(false)
+                setContentView(R.layout.dialog_loading)
+            }
+        }
+        mLoadingDialog?.run {
+            if (!isShowing)
+                show()
+        }
     }
 
     override fun dismissLoadingDialog() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        mLoadingDialog?.run {
+            if (isShowing)
+                dismiss()
+        }
     }
 
     override fun showToast(message: String) {
