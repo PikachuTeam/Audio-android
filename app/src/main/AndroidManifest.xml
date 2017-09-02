@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".ui.home.HomeActivity"
+            android:name=".ui.splash.SplashActivity"
             android:screenOrientation="portrait">
 
             <intent-filter>
@@ -25,7 +25,13 @@
         </activity>
 
         <activity
+            android:name=".ui.home.HomeActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity
             android:name=".ui.media.MediaActivity"
             android:screenOrientation="portrait"/>
+
+        <service android:name=".service.MediaService"/>
     </application>
 </manifest>

@@ -6,6 +6,7 @@ import android.support.design.widget.BottomSheetBehavior
 import android.support.v7.widget.LinearLayoutManager
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
+import com.essential.audio.service.MediaService
 import com.essential.audio.ui.media.MediaActivity
 import com.essential.audio.utils.Constants
 import com.essential.audio.utils.JsonHelper
@@ -50,13 +51,25 @@ class HomeActivity : BaseActivity(), HomeContract.View {
         }
     }
 
-    override fun openMediaActivity(audios: MutableList<Audio?>, chosenPosition: Int) {
+    override fun openMediaActivity(audio: Audio, isNew: Boolean) {
         startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
-            putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
-            putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
+            putExtra(Constants.Extra.CHOSEN_AUDIO, JsonHelper.instance.toJson(audio))
+            putExtra(Constants.Extra.IS_NEW, isNew)
         })
     }
 
+    override fun createNotification(audio: Audio) {
+        startService(Intent(this@HomeActivity, MediaService::class.java).apply {
+            action = Constants.Action.PLAY
+            putExtra(Constants.Extra.CHOSEN_AUDIO, JsonHelper.instance.toJson(audio))
+        })
+    }
+
+    override fun reOpenMediaActivity() {
+        startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
+            action = Constants.Action.PLAY_OLD_AUDIO
+        })
+    }
 
     private fun setupToolbar() {
         setSupportActionBar(mToolbar)
@@ -83,7 +96,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             }
 
             // Move to media activity
-            mPresenter.chooseAudio(position)
+            mPresenter.playAudio(position)
         }
     }
 }

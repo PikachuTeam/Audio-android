@@ -11,18 +11,10 @@ interface MediaContract {
     interface View : BaseContract.View {
         fun setupUI(audio: Audio)
 
-        fun setupMedia(audio: Audio)
-
-        fun playAudio(audio: Audio)
-
-        fun startOver()
+        fun setupMedia(audio: Audio, isNew: Boolean)
     }
 
     interface Presenter<V : View> : BaseContract.Presenter<V> {
         fun loadData(intent: Intent)
-
-        fun nextAudio()
-
-        fun previousAudio()
     }
 }

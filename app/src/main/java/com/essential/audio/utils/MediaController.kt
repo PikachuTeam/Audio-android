@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
+import com.essential.audio.data.model.Audio
 
 /**
  * Created by dongc on 8/30/2017.
@@ -11,6 +12,26 @@ import android.os.Build
 class MediaController private constructor() {
     val player: MediaPlayer = MediaPlayer()
         get() = field
+
+    var currentPosition = -1
+        get() = field
+        set(value) {
+            field = value
+        }
+
+    var category = -1
+        get() = field
+        set(value) {
+            field = value
+        }
+
+    private var mOnMediaStateListener: OnMediaStateListener? = null
+
+    var audios: MutableList<Audio> = ArrayList()
+        get() = field
+        set(value) {
+            field = value
+        }
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -21,18 +42,35 @@ class MediaController private constructor() {
         } else {
             player.setAudioStreamType(AudioManager.STREAM_MUSIC)
         }
+        player.setOnCompletionListener {
+            mOnMediaStateListener?.onCompletePlaying()
+            currentPosition++
+            if (currentPosition >= audios.size) {
+                currentPosition = audios.size - 1
+                pause()
+            } else {
+                prepare(audios[currentPosition])
+            }
+        }
+    }
+
+    fun initialize() {
+        player.reset()
+    }
+
+    fun setOnMediaPlayerStateListener(onMediaStateListener: OnMediaStateListener?) {
+        mOnMediaStateListener = onMediaStateListener
     }
 
     companion object {
         val instance: MediaController by lazy { MediaController() }
     }
 
-    fun prepare(url: String) {
-        player.setDataSource(url)
-        player.prepareAsync()
+    fun start() {
+        prepare(audios[currentPosition])
     }
 
-    fun resume() {
+    fun play() {
         if (!player.isPlaying) {
             player.start()
         }
@@ -50,13 +88,33 @@ class MediaController private constructor() {
         player.reset()
     }
 
-    fun seekTo(milliSecond: Int) {
-        player.seekTo(milliSecond)
+    fun next() {
+        currentPosition++
+        if (currentPosition >= audios.size) {
+            currentPosition = audios.size - 1
+            seekTo(0)
+            return
+        }
+        stop()
+        prepare(audios[currentPosition])
+    }
+
+    fun previous() {
+        currentPosition--
+        if (currentPosition < 0) {
+            currentPosition = 0
+            seekTo(0)
+            return
+        }
+        stop()
+        prepare(audios[currentPosition])
     }
 
     fun isPlaying(): Boolean = player.isPlaying
 
-    fun getDuration(): Int = player.duration
+    fun seekTo(milliSecond: Int) {
+        player.seekTo(milliSecond)
+    }
 
     fun setOnPreparedListener(onPreparedListener: MediaPlayer.OnPreparedListener) {
         player.setOnPreparedListener(onPreparedListener)
@@ -74,19 +132,15 @@ class MediaController private constructor() {
         player.setOnBufferingUpdateListener(null)
     }
 
-    fun setOnCompleteListener(onCompletionListener: MediaPlayer.OnCompletionListener) {
-        player.setOnCompletionListener(onCompletionListener)
-    }
-
-    fun removeOnCompleteListener() {
-        player.setOnCompletionListener(null)
-    }
-
     fun dispose() {
-        if (player != null) {
-            if (player.isPlaying)
-                player.stop()
-            player.release()
-        }
+        if (player.isPlaying)
+            player.stop()
+        player.release()
+    }
+
+    private fun prepare(audio: Audio) {
+        player.setDataSource(audio.url)
+        player.prepareAsync()
+        mOnMediaStateListener?.onStartLoading(audio.name)
     }
 }

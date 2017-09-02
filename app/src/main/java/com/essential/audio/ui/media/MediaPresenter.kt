@@ -13,35 +13,11 @@ import selft.yue.basekotlin.common.BasePresenter
 class MediaPresenter<V : MediaContract.View>(view: V) : BasePresenter<V>(view), MediaContract.Presenter<V> {
     private val TAG = MediaPresenter::class.java.simpleName
 
-    private val mAudios: MutableList<Audio> = ArrayList()
-    private var mCurrentPosition = -1
-
     override fun loadData(intent: Intent) {
-        mCurrentPosition = intent.getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
-        val audioJson = intent.getStringExtra(Constants.Extra.AUDIOS)
-        mAudios.addAll(JsonHelper.instance.fromJson(audioJson, genericType<MutableList<Audio>>()))
-        view?.setupUI(mAudios[mCurrentPosition])
-        view?.setupMedia(mAudios[mCurrentPosition])
-    }
-
-    override fun nextAudio() {
-        mCurrentPosition++
-        if (mCurrentPosition >= mAudios.size) {
-            mCurrentPosition = mAudios.size - 1
-            view?.startOver()
-            return
-        }
-        view?.playAudio(mAudios[mCurrentPosition])
-    }
-
-    override fun previousAudio() {
-        mCurrentPosition--
-        if (mCurrentPosition < 0) {
-            mCurrentPosition = 0
-            view?.startOver()
-            return
-        }
-        view?.playAudio(mAudios[mCurrentPosition])
+        val audioJson = intent.getStringExtra(Constants.Extra.CHOSEN_AUDIO)
+        val audio = JsonHelper.instance.fromJson(audioJson, Audio::class.java)
+        view?.setupUI(audio)
+        view?.setupMedia(audio, intent.getBooleanExtra(Constants.Extra.IS_NEW, false))
     }
 
     private inline fun <reified T> genericType() = object : TypeToken<T>() {}.type

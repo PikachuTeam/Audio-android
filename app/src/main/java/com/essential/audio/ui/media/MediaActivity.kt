@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v7.widget.AppCompatSeekBar
 import android.support.v7.widget.Toolbar
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
@@ -15,6 +14,7 @@ import android.widget.TextView
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
 import com.essential.audio.utils.MediaController
+import com.essential.audio.utils.OnMediaStateListener
 import com.essential.audio.widget.DateTimeUtils
 import kotlinx.android.synthetic.main.activity_media.*
 import selft.yue.basekotlin.activity.BaseActivity
@@ -65,7 +65,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
         mTimeHandler.removeCallbacks(mUpdateTimeTask)
         MediaController.instance.removeOnBufferingUpdateListener()
         MediaController.instance.removeOnPreparedListener()
-        MediaController.instance.removeOnCompleteListener()
+        MediaController.instance.setOnMediaPlayerStateListener(null)
         super.onDestroy()
     }
 
@@ -80,9 +80,11 @@ class MediaActivity : BaseActivity(), MediaContract.View {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun setupMedia(audio: Audio) {
-        if (MediaController.instance.isPlaying()) {
-            Log.e(TAG, "Playing")
+    override fun setupMedia(audio: Audio, isNew: Boolean) {
+        if (isNew) {
+            showLoadingProgress(true)
+            MediaController.instance.start()
+        } else {
             val mediaPlayer = MediaController.instance.player
 
             mIsPlaying = true
@@ -91,27 +93,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
 
             mSeekBar.max = mediaPlayer.duration
             mTimeHandler.post(mUpdateTimeTask)
-        } else {
-            Log.e(TAG, "Not Playing")
-            showLoadingProgress(true)
-            MediaController.instance.prepare(audio.url)
         }
-    }
-
-    override fun playAudio(audio: Audio) {
-        // Stop update time task
-        mTimeHandler.removeCallbacks(mUpdateTimeTask)
-
-        showLoadingProgress(true)
-        updateProgress(0, 0)
-        mToolbar.title = audio.name
-
-        MediaController.instance.stop()
-        MediaController.instance.prepare(audio.url)
-    }
-
-    override fun startOver() {
-        MediaController.instance.seekTo(0)
     }
 
     private fun setupToolbar() {
@@ -147,18 +129,18 @@ class MediaActivity : BaseActivity(), MediaContract.View {
                 mTimeHandler.removeCallbacks(mUpdateTimeTask)
             } else {
                 mIsPlaying = true
-                MediaController.instance.resume()
+                MediaController.instance.play()
                 mButtonPlayPause.setImageResource(R.drawable.ic_pause)
                 mTimeHandler.post(mUpdateTimeTask)
             }
         }
 
         btn_next_audio.setOnClickListener {
-            mPresenter.nextAudio()
+            MediaController.instance.next()
         }
 
         btn_previous_audio.setOnClickListener {
-            mPresenter.previousAudio()
+            MediaController.instance.previous()
         }
 
         // Seek bar
@@ -192,8 +174,17 @@ class MediaActivity : BaseActivity(), MediaContract.View {
         MediaController.instance.setOnBufferingUpdateListener(
                 MediaPlayer.OnBufferingUpdateListener { _, percentage -> mSeekBar.secondaryProgress = percentage })
 
-        MediaController.instance.setOnCompleteListener(MediaPlayer.OnCompletionListener {
-            mPresenter.nextAudio()
+        MediaController.instance.setOnMediaPlayerStateListener(object : OnMediaStateListener {
+            override fun onStartLoading(name: String) {
+                mToolbar.title = name
+                showLoadingProgress(true)
+            }
+
+            override fun onCompletePlaying() {
+                mIsPlaying = false
+                mButtonPlayPause.setImageResource(R.drawable.ic_play)
+                mTimeHandler.removeCallbacks(mUpdateTimeTask)
+            }
         })
     }
 
