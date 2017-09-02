@@ -1,10 +1,14 @@
 package com.essential.audio.ui.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v7.widget.LinearLayoutManager
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
+import com.essential.audio.ui.media.MediaActivity
+import com.essential.audio.utils.Constants
+import com.essential.audio.utils.JsonHelper
 import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
@@ -46,6 +50,14 @@ class HomeActivity : BaseActivity(), HomeContract.View {
         }
     }
 
+    override fun openMediaActivity(audios: MutableList<Audio?>, chosenPosition: Int) {
+        startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
+            putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
+            putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
+        })
+    }
+
+
     private fun setupToolbar() {
         setSupportActionBar(mToolbar)
         supportActionBar?.run {
@@ -63,14 +75,15 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     }
 
     private fun setEventListeners() {
-        mAdapter.onMainItemClick = { audio ->
-            audio?.run {
-                showToast(name)
-                if (mBottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED ||
-                        mBottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
-                    mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-                }
+        mAdapter.onMainItemClick = { position ->
+            // Control bottom sheet
+            if (mBottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED ||
+                    mBottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
+                mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             }
+
+            // Move to media activity
+            mPresenter.chooseAudio(position)
         }
     }
 }

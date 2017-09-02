@@ -1,6 +1,7 @@
 package com.essential.audio.ui.media
 
 import android.content.Intent
+import com.essential.audio.data.model.Audio
 import selft.yue.basekotlin.common.BaseContract
 
 /**
@@ -8,10 +9,20 @@ import selft.yue.basekotlin.common.BaseContract
  */
 interface MediaContract {
     interface View : BaseContract.View {
-        fun aloha()
+        fun setupUI(audio: Audio)
+
+        fun setupMedia(audio: Audio)
+
+        fun playAudio(audio: Audio)
+
+        fun startOver()
     }
 
     interface Presenter<V : View> : BaseContract.Presenter<V> {
         fun loadData(intent: Intent)
+
+        fun nextAudio()
+
+        fun previousAudio()
     }
 }

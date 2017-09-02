@@ -11,6 +11,9 @@ import selft.yue.basekotlin.common.BasePresenter
  */
 class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), HomeContract.Presenter<V> {
     private val mDataSource: AppDataSource = AppRepository()
+    private val mAudios: MutableList<Audio?> = ArrayList()
+
+    private var mCurrentPosition: Int = -1
 
     override fun loadData() {
         view?.run {
@@ -18,6 +21,7 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
             mDataSource.fetchAudios(object : OnRemoteResponse<MutableList<Audio?>> {
                 override fun onSuccess(data: MutableList<Audio?>) {
                     dismissLoadingDialog()
+                    mAudios.addAll(data)
                     refreshData(data)
                 }
 
@@ -27,5 +31,10 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
                 }
             })
         }
+    }
+
+    override fun chooseAudio(position: Int) {
+        mCurrentPosition = position
+        view?.openMediaActivity(mAudios, mCurrentPosition)
     }
 }

@@ -8,55 +8,85 @@ import android.os.Build
 /**
  * Created by dongc on 8/30/2017.
  */
-class MediaController private constructor() : MediaPlayer.OnPreparedListener {
-
-    private val mPlayer: MediaPlayer = MediaPlayer()
+class MediaController private constructor() {
+    val player: MediaPlayer = MediaPlayer()
+        get() = field
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mPlayer.setAudioAttributes(AudioAttributes.Builder()
+            player.setAudioAttributes(AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build())
         } else {
-            mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC)
         }
-        mPlayer.setOnPreparedListener(this)
-    }
-
-    private object Holder {
-        val INSTANCE = MediaController()
     }
 
     companion object {
-        val instance: MediaController by lazy { Holder.INSTANCE }
+        val instance: MediaController by lazy { MediaController() }
     }
 
-    fun play(url: String) {
-        mPlayer.setDataSource(url)
-        mPlayer.prepareAsync()
+    fun prepare(url: String) {
+        player.setDataSource(url)
+        player.prepareAsync()
     }
 
-    fun pause() {
-        if (mPlayer.isPlaying)
-            mPlayer.pause()
-    }
-
-    fun stop() {
-        if (mPlayer.isPlaying) {
-            mPlayer.stop()
+    fun resume() {
+        if (!player.isPlaying) {
+            player.start()
         }
     }
 
-    fun seekTo(milliSecond: Int) {
-        mPlayer.seekTo(milliSecond)
+    fun pause() {
+        if (player.isPlaying)
+            player.pause()
     }
 
-    fun isPlaying(): Boolean = mPlayer.isPlaying
+    fun stop() {
+        if (player.isPlaying) {
+            player.stop()
+        }
+        player.reset()
+    }
 
-    fun getDuration(): Int = mPlayer.duration
+    fun seekTo(milliSecond: Int) {
+        player.seekTo(milliSecond)
+    }
 
-    override fun onPrepared(p0: MediaPlayer?) {
-        p0?.start()
+    fun isPlaying(): Boolean = player.isPlaying
+
+    fun getDuration(): Int = player.duration
+
+    fun setOnPreparedListener(onPreparedListener: MediaPlayer.OnPreparedListener) {
+        player.setOnPreparedListener(onPreparedListener)
+    }
+
+    fun removeOnPreparedListener() {
+        player.setOnPreparedListener(null)
+    }
+
+    fun setOnBufferingUpdateListener(onBufferingUpdateListener: MediaPlayer.OnBufferingUpdateListener) {
+        player.setOnBufferingUpdateListener(onBufferingUpdateListener)
+    }
+
+    fun removeOnBufferingUpdateListener() {
+        player.setOnBufferingUpdateListener(null)
+    }
+
+    fun setOnCompleteListener(onCompletionListener: MediaPlayer.OnCompletionListener) {
+        player.setOnCompletionListener(onCompletionListener)
+    }
+
+    fun removeOnCompleteListener() {
+        player.setOnCompletionListener(null)
+    }
+
+    fun dispose() {
+        if (player != null) {
+            if (player.isPlaying)
+                player.stop()
+            player.release()
+        }
     }
 }

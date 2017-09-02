@@ -13,7 +13,7 @@ import selft.yue.basekotlin.adapter.normal.BaseAdapter
  * Created by dongc on 9/1/2017.
  */
 class AudiosAdapter : BaseAdapter<Audio, AudiosAdapter.ItemHolder>() {
-    var onMainItemClick: ((audio: Audio?) -> Unit)? = null
+    var onMainItemClick: ((position: Int) -> Unit)? = null
         get() = field
         set(value) {
             field = value
@@ -26,7 +26,7 @@ class AudiosAdapter : BaseAdapter<Audio, AudiosAdapter.ItemHolder>() {
         val audio = items[position]
         holder.tvAudioName.text = audio?.name
 
-        holder.tvAudioName.setOnClickListener { onMainItemClick?.invoke(audio) }
+        holder.tvAudioName.setOnClickListener { onMainItemClick?.invoke(position) }
     }
 
     override fun findItem(item: Audio): Int = items.indices.firstOrNull { items[it]?.url.equals(item.url) } ?: -1
