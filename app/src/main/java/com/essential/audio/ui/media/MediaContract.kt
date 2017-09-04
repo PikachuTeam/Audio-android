@@ -11,7 +11,7 @@ interface MediaContract {
     interface View : BaseContract.View {
         fun setupUI(audio: Audio)
 
-        fun setupMedia(audio: Audio, isNew: Boolean)
+        fun setupMedia(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean)
     }
 
     interface Presenter<V : View> : BaseContract.Presenter<V> {

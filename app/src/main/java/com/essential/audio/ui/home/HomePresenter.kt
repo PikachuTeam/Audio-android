@@ -3,7 +3,6 @@ package com.essential.audio.ui.home
 import com.essential.audio.data.AppDataSource
 import com.essential.audio.data.AppRepository
 import com.essential.audio.data.model.Audio
-import com.essential.audio.utils.MediaController
 import com.essential.audio.utils.OnRemoteResponse
 import selft.yue.basekotlin.common.BasePresenter
 
@@ -14,6 +13,8 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
 
     private val mDataSource: AppDataSource = AppRepository()
     private val mAudios: MutableList<Audio?> = ArrayList()
+
+    private var mCurrentPosition = -1
 
     override fun loadData() {
         view?.run {
@@ -36,18 +37,13 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
     override fun playAudio(position: Int) {
         var isNew = false
         mAudios[position]?.let {
-            if (MediaController.instance.audios.size == 0 || MediaController.instance.audios[0].url != it.url) {
-                val chosenAudios: MutableList<Audio> = ArrayList()
-                chosenAudios.add(it)
-                MediaController.instance.audios = chosenAudios
-                MediaController.instance.currentPosition = 0
-                if (MediaController.instance.isPlaying())
-                    MediaController.instance.stop()
+            if (mCurrentPosition == -1 || mCurrentPosition != position) {
+                mCurrentPosition = position
                 isNew = true
-
-                view?.createNotification(it)
             }
-            view?.openMediaActivity(it, isNew)
+            val chosenAudios: MutableList<Audio> = ArrayList()
+            chosenAudios.add(it)
+            view?.openMediaActivity(chosenAudios, position, isNew)
         }
     }
 

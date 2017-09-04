@@ -9,11 +9,7 @@ import selft.yue.basekotlin.util.HasNormalRecyclerView
  */
 interface HomeContract {
     interface View : BaseContract.View, HasNormalRecyclerView<Audio?> {
-        fun openMediaActivity(audio: Audio, isNew: Boolean)
-
-        fun reOpenMediaActivity()
-
-        fun createNotification(audio: Audio)
+        fun openMediaActivity(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean)
     }
 
     interface Presenter<V : View> : BaseContract.Presenter<V> {

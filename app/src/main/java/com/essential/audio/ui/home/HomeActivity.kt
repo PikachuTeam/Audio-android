@@ -1,12 +1,14 @@
 package com.essential.audio.ui.home
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v7.widget.LinearLayoutManager
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
-import com.essential.audio.service.MediaService
 import com.essential.audio.ui.media.MediaActivity
 import com.essential.audio.utils.Constants
 import com.essential.audio.utils.JsonHelper
@@ -28,6 +30,23 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     private val mBottomSheetBehavior by lazy { BottomSheetBehavior.from(mBottomSheetMediaPlayer) }
     private val mAdapter: AudiosAdapter = AudiosAdapter()
 
+    private val mMediaControlReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.run {
+                when (action) {
+                    Constants.Action.MEDIA_PREPARING -> {
+                    }
+                    Constants.Action.MEDIA_PREPARED -> {
+                    }
+                    Constants.Action.MEDIA_PLAY -> {
+                    }
+                    Constants.Action.MEDIA_PAUSE -> {
+                    }
+                }
+            }
+        }
+    }
+
     override fun getLayoutResId(): Int = R.layout.activity_home
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +57,21 @@ class HomeActivity : BaseActivity(), HomeContract.View {
         setEventListeners()
 
         mPresenter.loadData()
+    }
+
+    override fun onResume() {
+        registerReceiver(mMediaControlReceiver, IntentFilter().apply {
+            addAction(Constants.Action.MEDIA_PREPARING)
+            addAction(Constants.Action.MEDIA_PREPARED)
+            addAction(Constants.Action.MEDIA_PLAY)
+            addAction(Constants.Action.MEDIA_PAUSE)
+        })
+        super.onResume()
+    }
+
+    override fun onStop() {
+        unregisterReceiver(mMediaControlReceiver)
+        super.onStop()
     }
 
     override fun onDestroy() {
@@ -51,23 +85,11 @@ class HomeActivity : BaseActivity(), HomeContract.View {
         }
     }
 
-    override fun openMediaActivity(audio: Audio, isNew: Boolean) {
+    override fun openMediaActivity(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean) {
         startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
-            putExtra(Constants.Extra.CHOSEN_AUDIO, JsonHelper.instance.toJson(audio))
+            putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
+            putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
             putExtra(Constants.Extra.IS_NEW, isNew)
-        })
-    }
-
-    override fun createNotification(audio: Audio) {
-        startService(Intent(this@HomeActivity, MediaService::class.java).apply {
-            action = Constants.Action.PLAY
-            putExtra(Constants.Extra.CHOSEN_AUDIO, JsonHelper.instance.toJson(audio))
-        })
-    }
-
-    override fun reOpenMediaActivity() {
-        startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
-            action = Constants.Action.PLAY_OLD_AUDIO
         })
     }
 

@@ -9,7 +9,8 @@ import com.essential.audio.data.model.Audio
 /**
  * Created by dongc on 8/30/2017.
  */
-class MediaController private constructor() {
+class MediaController {
+    // Properties
     val player: MediaPlayer = MediaPlayer()
         get() = field
 
@@ -33,6 +34,7 @@ class MediaController private constructor() {
             field = value
         }
 
+    // Constructor
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             player.setAudioAttributes(AudioAttributes.Builder()
@@ -42,28 +44,25 @@ class MediaController private constructor() {
         } else {
             player.setAudioStreamType(AudioManager.STREAM_MUSIC)
         }
+
         player.setOnCompletionListener {
-            mOnMediaStateListener?.onCompletePlaying()
             currentPosition++
             if (currentPosition >= audios.size) {
                 currentPosition = audios.size - 1
                 pause()
+                mOnMediaStateListener?.onFinishPlaying()
             } else {
+                mOnMediaStateListener?.onAudioCompleted()
                 prepare(audios[currentPosition])
             }
         }
-    }
 
-    fun initialize() {
         player.reset()
     }
 
+    // Functions
     fun setOnMediaPlayerStateListener(onMediaStateListener: OnMediaStateListener?) {
         mOnMediaStateListener = onMediaStateListener
-    }
-
-    companion object {
-        val instance: MediaController by lazy { MediaController() }
     }
 
     fun start() {
@@ -71,9 +70,7 @@ class MediaController private constructor() {
     }
 
     fun play() {
-        if (!player.isPlaying) {
-            player.start()
-        }
+        player.start()
     }
 
     fun pause() {
@@ -93,6 +90,8 @@ class MediaController private constructor() {
         if (currentPosition >= audios.size) {
             currentPosition = audios.size - 1
             seekTo(0)
+            if (!player.isPlaying)
+                player.start()
             return
         }
         stop()
@@ -104,6 +103,8 @@ class MediaController private constructor() {
         if (currentPosition < 0) {
             currentPosition = 0
             seekTo(0)
+            if (!player.isPlaying)
+                player.start()
             return
         }
         stop()
@@ -124,6 +125,8 @@ class MediaController private constructor() {
         player.setOnPreparedListener(null)
     }
 
+    fun getCurrentAudio(): Audio = audios[currentPosition]
+
     fun setOnBufferingUpdateListener(onBufferingUpdateListener: MediaPlayer.OnBufferingUpdateListener) {
         player.setOnBufferingUpdateListener(onBufferingUpdateListener)
     }
@@ -141,6 +144,5 @@ class MediaController private constructor() {
     private fun prepare(audio: Audio) {
         player.setDataSource(audio.url)
         player.prepareAsync()
-        mOnMediaStateListener?.onStartLoading(audio.name)
     }
 }

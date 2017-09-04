@@ -1,7 +1,6 @@
 package com.essential.audio
 
 import android.app.Application
-import com.essential.audio.utils.MediaController
 import com.parse.Parse
 
 /**
@@ -15,10 +14,5 @@ class AudioApplication : Application() {
                 .server(getString(R.string.server_address))
                 .clientKey(getString(R.string.client_key))
                 .build())
-    }
-
-    override fun onTerminate() {
-        MediaController.instance.dispose()
-        super.onTerminate()
     }
 }

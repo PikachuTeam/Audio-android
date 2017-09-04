@@ -9,14 +9,22 @@ object Constants {
         val AUDIOS = "AUDIOS"
         val CHOSEN_AUDIO = "CHOSEN_AUDIO"
         val IS_NEW = "IS_NEW"
+        val DURATION = "DURATION"
+        val AUDIO_NAME = "AUDIO_NAME"
+        val PROGRESS = "PROGRESS"
     }
 
     object Action {
-        val PLAY = "PLAY"
-        val PAUSE = "PAUSE"
-        val NEXT = "NEXT"
-        val PREVIOUS = "PREVIOUS"
-        val PLAY_NEW_AUDIO = "PLAY_NEW_AUDIO"
-        val PLAY_OLD_AUDIO = "PLAY_OLD_AUDIO"
+        val MEDIA_START = "MEDIA_START"
+        val MEDIA_PLAY = "MEDIA_PLAY"
+        val MEDIA_PAUSE = "MEDIA_PAUSE"
+        val MEDIA_NEXT = "MEDIA_NEXT"
+        val MEDIA_PREVIOUS = "MEDIA_PREVIOUS"
+        val MEDIA_PREPARING = "MEDIA_PREPARING"
+        val MEDIA_PREPARED = "MEDIA_PREPARED"
+        val MEDIA_FINISH_PLAYING = "MEDIA_FINISH_PLAYING"
+        val MEDIA_SEEK_TO = "MEDIA_SEEK_TO"
+        val MEDIA_BUFFERING = "MEDIA_BUFFERING"
+        val MEDIA_AUDIO_COMPLETED = "MEDIA_AUDIO_COMPLETED"
     }
 }

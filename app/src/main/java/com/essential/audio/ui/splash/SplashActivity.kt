@@ -16,7 +16,6 @@ class SplashActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        MediaController.instance.initialize()
         startActivity(Intent(this, HomeActivity::class.java))
     }
 }
