@@ -19,7 +19,7 @@ class MediaPresenter<V : MediaContract.View>(view: V) : BasePresenter<V>(view), 
         val chosenPosition = intent.getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
 
         view?.setupUI(audios[chosenPosition])
-//        view?.setupMedia(audio, intent.getBooleanExtra(Constants.Extra.IS_NEW, false))
+        view?.setupMedia(audioJson, chosenPosition, intent.getBooleanExtra(Constants.Extra.IS_NEW, false))
     }
 
     private inline fun <reified T> genericType() = object : TypeToken<T>() {}.type

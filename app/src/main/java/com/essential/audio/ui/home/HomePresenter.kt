@@ -43,7 +43,7 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
             }
             val chosenAudios: MutableList<Audio> = ArrayList()
             chosenAudios.add(it)
-            view?.openMediaActivity(chosenAudios, position, isNew)
+            view?.openMediaActivity(chosenAudios, 0, isNew)
         }
     }
 

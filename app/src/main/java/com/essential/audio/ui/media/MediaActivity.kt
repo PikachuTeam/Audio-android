@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
 import android.support.v7.widget.AppCompatSeekBar
 import android.support.v7.widget.Toolbar
 import android.view.MenuItem
@@ -40,19 +39,19 @@ class MediaActivity : BaseActivity(), MediaContract.View {
     private val mLoadingProgress: ProgressBar by lazy { loading_progress }
     private val mButtonPlayPause: ImageView by lazy { btn_play_pause }
 
-    private var mCurrentPosition = 0
-    private var mDuration = 0
+//    private var mCurrentPosition = 0
+//    private var mDuration = 0
 
-    private val mTimeHandler = Handler()
-    private val mUpdateTimeTask = object : Runnable {
-        override fun run() {
-            mCurrentPosition += 1000
-            if (mCurrentPosition <= mDuration) {
-                updateProgress(mCurrentPosition, mDuration)
-                mTimeHandler.postDelayed(this, UPDATE_PROGRESS_INTERVAL)
-            }
-        }
-    }
+//    private val mTimeHandler = Handler()
+//    private val mUpdateTimeTask = object : Runnable {
+//        override fun run() {
+//            mCurrentPosition += 1000
+//            if (mCurrentPosition <= mDuration) {
+//                updateProgress(mCurrentPosition, mDuration)
+//                mTimeHandler.postDelayed(this, UPDATE_PROGRESS_INTERVAL)
+//            }
+//        }
+//    }
 
     private var mIsPlaying: Boolean = false
 
@@ -62,26 +61,27 @@ class MediaActivity : BaseActivity(), MediaContract.View {
                 when (action) {
                     Constants.Action.MEDIA_PREPARING -> {
                         showLoadingProgress(true)
-                        mToolbar.title = intent.getStringExtra(Constants.Extra.AUDIO_NAME)
-                        mTimeHandler.removeCallbacks(mUpdateTimeTask)
+                        mToolbar.title = getStringExtra(Constants.Extra.AUDIO_NAME)
+//                        mTimeHandler.removeCallbacks(mUpdateTimeTask)
 
                         mIsPlaying = false
                     }
                     Constants.Action.MEDIA_PREPARED -> {
                         mButtonPlayPause.setImageResource(R.drawable.ic_pause)
                         showLoadingProgress(false)
-                        mCurrentPosition = 0
-                        mDuration = intent.getIntExtra(Constants.Extra.DURATION, 0)
+//                        mCurrentPosition = 0
+//                        mDuration = getIntExtra(Constants.Extra.DURATION, 0)
 
                         // setup seek bar and time
-                        mSeekBar.max = mDuration
-                        mTimeHandler.post(mUpdateTimeTask)
+//                        mSeekBar.max = mDuration
+//                        mTimeHandler.post(mUpdateTimeTask)
 
                         mIsPlaying = true
                     }
                     Constants.Action.MEDIA_PLAY -> {
                         mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-                        mTimeHandler.post(mUpdateTimeTask)
+//                        mTimeHandler.post(mUpdateTimeTask)
+                        startMediaService(Constants.Action.MEDIA_START_UPDATE_PROGRESS)
                         mIsPlaying = true
                     }
                     Constants.Action.MEDIA_PAUSE, Constants.Action.MEDIA_FINISH_PLAYING -> {
@@ -89,25 +89,35 @@ class MediaActivity : BaseActivity(), MediaContract.View {
                             showLoadingProgress(false)
                         }
                         mButtonPlayPause.setImageResource(R.drawable.ic_play)
-                        mTimeHandler.removeCallbacks(mUpdateTimeTask)
+//                        mTimeHandler.removeCallbacks(mUpdateTimeTask)
+                        startMediaService(Constants.Action.MEDIA_STOP_UPDATE_PROGRESS)
                         mIsPlaying = false
                     }
                     Constants.Action.MEDIA_NEXT -> {
                         if (!mIsPlaying) {
-                            mTimeHandler.post(mUpdateTimeTask)
+//                            mTimeHandler.post(mUpdateTimeTask)
+                            startMediaService(Constants.Action.MEDIA_START_UPDATE_PROGRESS)
                             mButtonPlayPause.setImageResource(R.drawable.ic_pause)
                             mIsPlaying = true
                         }
-                        mCurrentPosition = 0
+//                        mCurrentPosition = 0
                     }
                     Constants.Action.MEDIA_PREVIOUS -> {
                         if (!mIsPlaying) {
-                            mTimeHandler.post(mUpdateTimeTask)
+//                            mTimeHandler.post(mUpdateTimeTask)
+                            startMediaService(Constants.Action.MEDIA_START_UPDATE_PROGRESS)
                             mButtonPlayPause.setImageResource(R.drawable.ic_pause)
 
                             mIsPlaying = true
                         }
-                        mCurrentPosition = 0
+//                        mCurrentPosition = 0
+                    }
+                    Constants.Action.MEDIA_UPDATE_PROGRESS -> {
+                        val duration = getIntExtra(Constants.Extra.DURATION, 0)
+                        val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
+                        if (mSeekBar.max != duration)
+                            mSeekBar.max = duration
+                        updateProgress(currentPosition, duration)
                     }
                 }
             }
@@ -135,19 +145,16 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             addAction(Constants.Action.MEDIA_NEXT)
             addAction(Constants.Action.MEDIA_PREVIOUS)
             addAction(Constants.Action.MEDIA_FINISH_PLAYING)
+            addAction(Constants.Action.MEDIA_UPDATE_PROGRESS)
         })
         super.onResume()
     }
 
-    override fun onStop() {
-        unregisterReceiver(mMediaControlReceiver)
-        super.onStop()
-    }
-
     override fun onDestroy() {
+        unregisterReceiver(mMediaControlReceiver)
         mPresenter.dispose()
-        mTimeHandler.removeCallbacks(mUpdateTimeTask)
-//        MediaController.instance.removeOnBufferingUpdateListener()
+//        mTimeHandler.removeCallbacks(mUpdateTimeTask)
+        startMediaService(Constants.Action.MEDIA_STOP_UPDATE_PROGRESS)
         super.onDestroy()
     }
 
@@ -162,23 +169,20 @@ class MediaActivity : BaseActivity(), MediaContract.View {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun setupMedia(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean) {
+    override fun setupMedia(audioJson: String, chosenPosition: Int, isNew: Boolean) {
         if (isNew) {
             showLoadingProgress(true)
             startService(Intent(this, MediaService::class.java).apply {
-                //TODO: Not done
                 action = Constants.Action.MEDIA_START
+                putExtra(Constants.Extra.AUDIOS, audioJson)
             })
         } else {
-//            val mediaPlayer = MediaController.instance.player
-
             mIsPlaying = true
             showLoadingProgress(false)
             mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-
-//            mSeekBar.max = mediaPlayer.duration
-            mTimeHandler.post(mUpdateTimeTask)
+//            mTimeHandler.post(mUpdateTimeTask)
         }
+        startMediaService(Constants.Action.MEDIA_START_UPDATE_PROGRESS)
     }
 
     private fun setupToolbar() {
@@ -210,15 +214,17 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             if (mIsPlaying) {
                 mIsPlaying = false
                 mButtonPlayPause.setImageResource(R.drawable.ic_play)
-                mTimeHandler.removeCallbacks(mUpdateTimeTask)
+//                mTimeHandler.removeCallbacks(mUpdateTimeTask)
 
                 startMediaService(Constants.Action.MEDIA_PAUSE)
+                startMediaService(Constants.Action.MEDIA_STOP_UPDATE_PROGRESS)
             } else {
                 mIsPlaying = true
                 mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-                mTimeHandler.post(mUpdateTimeTask)
+//                mTimeHandler.post(mUpdateTimeTask)
 
                 startMediaService(Constants.Action.MEDIA_PLAY)
+                startMediaService(Constants.Action.MEDIA_START_UPDATE_PROGRESS)
             }
         }
 
@@ -240,7 +246,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
 
             override fun onStopTrackingTouch(p0: SeekBar?) {
                 p0?.run {
-                    mCurrentPosition = progress
+                    //                    mCurrentPosition = progress
                     startService(Intent(this@MediaActivity, MediaService::class.java).apply {
                         action = Constants.Action.MEDIA_SEEK_TO
                         putExtra(Constants.Extra.PROGRESS, p0.progress)

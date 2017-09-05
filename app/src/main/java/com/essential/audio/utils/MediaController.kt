@@ -66,6 +66,7 @@ class MediaController {
     }
 
     fun start() {
+        stop()
         prepare(audios[currentPosition])
     }
 
