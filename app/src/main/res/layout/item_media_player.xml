@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-       xmlns:app="http://schemas.android.com/apk/res-auto">
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="wrap_content">
 
     <ProgressBar
         android:id="@+id/progress_media"
@@ -51,4 +53,4 @@
         app:layout_constraintBottom_toBottomOf="@id/btn_play_pause"
         app:layout_constraintRight_toLeftOf="@id/btn_play_pause"
         app:layout_constraintTop_toTopOf="@id/btn_play_pause"/>
-</merge>
+</android.support.constraint.ConstraintLayout>

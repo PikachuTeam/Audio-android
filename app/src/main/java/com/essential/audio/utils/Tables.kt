@@ -9,6 +9,7 @@ object Tables {
         val NAME = "tbl_audio"
         val COLUMN_NAME = "name"
         val COLUMN_FILE = "file"
-        val COLUMN_IS_GIRL_VOICE = "speaker"
+        val COLUMN_SPEAKER = "speaker"
+        val COLUMN_COVER = "image_url"
     }
 }

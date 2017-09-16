@@ -4,14 +4,22 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v7.widget.LinearLayoutManager
+import android.view.ViewTreeObserver
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
 import com.essential.audio.ui.media.MediaActivity
 import com.essential.audio.utils.Constants
 import com.essential.audio.utils.JsonHelper
+import com.facebook.common.util.UriUtil
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.imagepipeline.common.ResizeOptions
+import com.facebook.imagepipeline.request.ImageRequest
+import com.facebook.imagepipeline.request.ImageRequestBuilder
 import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
@@ -26,9 +34,10 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     private val mRvAudios by lazy { rv_audios }
     private val mToolbar by lazy { toolbar }
     private val mBottomSheetMediaPlayer by lazy { bottom_sheet_media_player }
+    private val mIvBackground by lazy { iv_background }
 
     private val mBottomSheetBehavior by lazy { BottomSheetBehavior.from(mBottomSheetMediaPlayer) }
-    private val mAdapter: AudiosAdapter = AudiosAdapter()
+    private val mAdapter: AudiosAdapter = AudiosAdapter(this)
 
     private val mMediaControlReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -55,6 +64,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
         setupToolbar()
         setUpRecyclerView()
         setEventListeners()
+        setBackground()
 
         mPresenter.loadData()
     }
@@ -105,7 +115,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
 
     private fun setUpRecyclerView() {
         mRvAudios.layoutManager = LinearLayoutManager(this)
-        mRvAudios.addItemDecoration(LinearItemDecoration(3))
+        mRvAudios.addItemDecoration(LinearItemDecoration(15, 30))
         mRvAudios.adapter = mAdapter
     }
 
@@ -120,5 +130,33 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             // Move to media activity
             mPresenter.playAudio(position)
         }
+    }
+
+    private fun setBackground() {
+        mIvBackground.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (Build.VERSION.SDK_INT < 16)
+                    mIvBackground.viewTreeObserver.removeGlobalOnLayoutListener(this)
+                else
+                    mIvBackground.viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+                val temp = "" + R.drawable.app_background_2
+
+                val imageUri = Uri.Builder()
+                        .scheme(UriUtil.LOCAL_RESOURCE_SCHEME)
+                        .path(temp)
+                        .build()
+
+                val imageRequest = ImageRequestBuilder
+                        .newBuilderWithSource(imageUri)
+                        .setResizeOptions(ResizeOptions(mIvBackground.width, mIvBackground.height))
+                        .build()
+
+                mIvBackground.controller = Fresco.newDraweeControllerBuilder()
+                        .setOldController(mIvBackground.controller)
+                        .setImageRequest(imageRequest)
+                        .build()
+            }
+        })
     }
 }

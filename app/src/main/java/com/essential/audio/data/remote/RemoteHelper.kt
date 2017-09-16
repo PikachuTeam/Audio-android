@@ -22,9 +22,10 @@ object RemoteHelper {
 
                     parseObjects.forEach {
                         val name = it.getString(Tables.Audio.COLUMN_NAME)
-                        val isGirlVoice = it.getBoolean(Tables.Audio.COLUMN_IS_GIRL_VOICE)
+                        val isGirlVoice = it.getNumber(Tables.Audio.COLUMN_SPEAKER) == 0
                         val url = it.getParseFile(Tables.Audio.COLUMN_FILE).url
-                        audios.add(Audio(name, url, isGirlVoice))
+                        val cover = it.getString(Tables.Audio.COLUMN_COVER)
+                        audios.add(Audio(name, url, isGirlVoice, cover))
                     }
 
                     callback.onSuccess(audios)

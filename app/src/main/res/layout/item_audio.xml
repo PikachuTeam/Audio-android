@@ -1,14 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical">
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                    xmlns:app="http://schemas.android.com/apk/res-auto"
+                                    xmlns:tools="http://schemas.android.com/tools"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:cardBackgroundColor="@color/white"
+                                    app:cardCornerRadius="10dp">
 
-    <TextView
-        android:id="@+id/tv_audio_name"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/item_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:padding="10dp"
-        android:text="Aloha"/>
-</LinearLayout>
+        android:background="?attr/selectableItemBackgroundBorderless">
+
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/iv_cover"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:padding="10dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:placeholderImage="@drawable/ic_picture"/>
+
+        <!--<ImageView-->
+        <!--android:id="@+id/btn_play_pause"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:src="@drawable/ic_play"-->
+        <!--app:layout_constraintBottom_toBottomOf="@id/iv_cover"-->
+        <!--app:layout_constraintLeft_toLeftOf="@id/iv_cover"-->
+        <!--app:layout_constraintRight_toRightOf="@id/iv_cover"-->
+        <!--app:layout_constraintTop_toTopOf="@id/iv_cover"/>-->
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/default_horizontal_space"
+            android:layout_marginRight="@dimen/default_horizontal_space"
+            android:layout_marginTop="@dimen/default_vertical_space"
+            android:maxLines="1"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            app:layout_constraintLeft_toRightOf="@id/iv_cover"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Co gai ngay hom qua"/>
+
+        <ImageView
+            android:id="@+id/iv_number_of_listeners"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/default_vertical_space"
+            android:layout_marginLeft="@dimen/default_horizontal_space"
+            android:src="@drawable/ic_headphones"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/iv_cover"/>
+
+        <TextView
+            android:id="@+id/tv_number_of_listeners"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:textColor="@color/primary_text_color"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@id/iv_number_of_listeners"
+            app:layout_constraintLeft_toRightOf="@id/iv_number_of_listeners"
+            app:layout_constraintTop_toTopOf="@id/iv_number_of_listeners"
+            tools:text="155"/>
+
+        <ImageView
+            android:id="@+id/iv_gender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/default_vertical_space"
+            android:layout_marginLeft="@dimen/default_horizontal_space"
+            android:src="@drawable/ic_girl_underwear"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/tv_number_of_listeners"/>
+
+        <TextView
+            android:id="@+id/tv_gender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="@string/boy"
+            android:textColor="@color/primary_text_color"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@id/iv_gender"
+            app:layout_constraintLeft_toRightOf="@id/iv_gender"
+            app:layout_constraintTop_toTopOf="@id/iv_gender"/>
+
+        <TextView
+            android:id="@+id/tv_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="@dimen/default_horizontal_space"
+            android:textColor="@color/primary_text_color"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@id/iv_number_of_listeners"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/iv_number_of_listeners"
+            tools:text="18:15"/>
+
+        <ProgressBar
+            android:id="@+id/progress_duration"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="0dp"
+            android:layout_height="3dp"
+            android:layout_marginLeft="@dimen/default_horizontal_space"
+            android:layout_marginRight="@dimen/default_horizontal_space"
+            android:progressDrawable="@drawable/progress_horizontal"
+            app:layout_constraintBottom_toTopOf="@id/iv_number_of_listeners"
+            app:layout_constraintLeft_toRightOf="@id/iv_cover"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_title"/>
+    </android.support.constraint.ConstraintLayout>
+</android.support.v7.widget.CardView>

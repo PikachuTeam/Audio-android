@@ -1,6 +1,7 @@
 package com.essential.audio
 
 import android.app.Application
+import com.facebook.drawee.backends.pipeline.Fresco
 import com.parse.Parse
 
 /**
@@ -14,5 +15,7 @@ class AudioApplication : Application() {
                 .server(getString(R.string.server_address))
                 .clientKey(getString(R.string.client_key))
                 .build())
+
+        Fresco.initialize(this)
     }
 }
