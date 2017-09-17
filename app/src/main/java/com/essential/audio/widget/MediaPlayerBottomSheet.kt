@@ -17,6 +17,12 @@ class MediaPlayerBottomSheet : ConstraintLayout {
   private lateinit var mTvAudioName: TextView
   private lateinit var mTvAudioDuration: TextView
 
+  var onFunctionClickListener: ((view: View) -> Unit)? = null
+    get() = field
+    set(value) {
+      field = value
+    }
+
   var isPlaying: Boolean = false
     get() = field
     set(value) {
@@ -39,6 +45,19 @@ class MediaPlayerBottomSheet : ConstraintLayout {
     mBtnPlayPause = findViewById(R.id.btn_play_pause)
     mTvAudioName = findViewById(R.id.tv_audio_name)
     mTvAudioDuration = findViewById(R.id.tv_audio_duration)
+
+    mBtnPlayPause.setOnClickListener {
+      onFunctionClickListener?.invoke(it)
+    }
+    findViewById<View>(R.id.btn_next_audio).setOnClickListener {
+      onFunctionClickListener?.invoke(it)
+    }
+    findViewById<View>(R.id.btn_previous_audio).setOnClickListener {
+      onFunctionClickListener?.invoke(it)
+    }
+    findViewById<View>(R.id.item_container).setOnClickListener {
+      onFunctionClickListener?.invoke(it)
+    }
   }
 
   fun setAudioName(audioName: String) {

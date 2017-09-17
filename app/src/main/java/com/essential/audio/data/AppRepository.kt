@@ -8,7 +8,7 @@ import com.essential.audio.utils.OnRemoteResponse
  * Created by dongc on 9/1/2017.
  */
 class AppRepository : AppDataSource {
-    override fun fetchAudios(callback: OnRemoteResponse<MutableList<Audio?>>) {
-        RemoteHelper.fetchAudios(callback)
-    }
+  override fun fetchAudios(callback: OnRemoteResponse<MutableList<Audio?>>) {
+    RemoteHelper.fetchAudios(callback)
+  }
 }

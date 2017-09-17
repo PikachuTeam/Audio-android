@@ -43,7 +43,7 @@ dependencies {
     compile 'com.facebook.fresco:fresco:1.5.0'
 
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
-        transitive = true;
+        transitive = true
     }
 
     compile project(':base_kotlin')

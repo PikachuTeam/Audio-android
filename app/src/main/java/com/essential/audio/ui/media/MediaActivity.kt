@@ -30,7 +30,6 @@ import com.facebook.imagepipeline.common.ResizeOptions
 import com.facebook.imagepipeline.request.ImageRequestBuilder
 import kotlinx.android.synthetic.main.activity_media.*
 import selft.yue.basekotlin.activity.BaseActivity
-import selft.yue.basekotlin.extension.getRealColor
 
 /**
  * Created by dongc on 8/31/2017.
@@ -56,7 +55,6 @@ class MediaActivity : BaseActivity(), MediaContract.View {
         when (action) {
           Constants.Action.MEDIA_PREPARING -> {
             showLoadingProgress(true)
-            mToolbar.title = getStringExtra(Constants.Extra.AUDIO_NAME)
 
             mIsPlaying = false
           }
@@ -82,12 +80,16 @@ class MediaActivity : BaseActivity(), MediaContract.View {
               mButtonPlayPause.setImageResource(R.drawable.ic_pause)
               mIsPlaying = true
             }
+
+            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
           }
           Constants.Action.MEDIA_PREVIOUS -> {
             if (!mIsPlaying) {
               mButtonPlayPause.setImageResource(R.drawable.ic_pause)
               mIsPlaying = true
             }
+
+            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
           }
           Constants.Action.MEDIA_UPDATE_PROGRESS -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
@@ -95,6 +97,31 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             if (mSeekBar.max != duration)
               mSeekBar.max = duration
             updateProgress(currentPosition, duration)
+          }
+          Constants.Action.MEDIA_GET_CURRENT_STATE -> {
+            val duration = getIntExtra(Constants.Extra.DURATION, 0)
+            val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
+            val audioName = getStringExtra(Constants.Extra.AUDIO_NAME)
+            val isPreparing = getBooleanExtra(Constants.Extra.IS_PREPARING, false)
+            mIsPlaying = getBooleanExtra(Constants.Extra.IS_PLAYING, false)
+
+            if (isPreparing) {
+              mLoadingProgress.visibility = View.VISIBLE
+              mButtonPlayPause.visibility = View.GONE
+            } else {
+              mLoadingProgress.visibility = View.GONE
+              mButtonPlayPause.visibility = View.VISIBLE
+
+              mButtonPlayPause.setImageResource(
+                      if (mIsPlaying) R.drawable.ic_pause
+                      else R.drawable.ic_play
+              )
+            }
+
+            if (mSeekBar.max != duration)
+              mSeekBar.max = duration
+            updateProgress(currentPosition, duration)
+            mTvTitle.text = audioName
           }
         }
       }
@@ -109,8 +136,6 @@ class MediaActivity : BaseActivity(), MediaContract.View {
     setupToolbar()
     setBackground()
 
-    mPresenter.loadData(intent)
-
     setEventListeners()
   }
 
@@ -124,7 +149,10 @@ class MediaActivity : BaseActivity(), MediaContract.View {
       addAction(Constants.Action.MEDIA_PREVIOUS)
       addAction(Constants.Action.MEDIA_FINISH_PLAYING)
       addAction(Constants.Action.MEDIA_UPDATE_PROGRESS)
+      addAction(Constants.Action.MEDIA_GET_CURRENT_STATE)
     })
+
+    startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
     super.onResume()
   }
 
@@ -134,11 +162,6 @@ class MediaActivity : BaseActivity(), MediaContract.View {
     super.onDestroy()
   }
 
-  override fun setupUI(audio: Audio) {
-//    mToolbar.title = audio.name
-    mTvTitle.text = audio.name
-  }
-
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
     if (item?.itemId == android.R.id.home) {
       onBackPressed()
@@ -146,18 +169,8 @@ class MediaActivity : BaseActivity(), MediaContract.View {
     return super.onOptionsItemSelected(item)
   }
 
-  override fun setupMedia(audioJson: String, chosenPosition: Int, isNew: Boolean) {
-    if (isNew) {
-      showLoadingProgress(true)
-      startService(Intent(this, MediaService::class.java).apply {
-        action = Constants.Action.MEDIA_START
-        putExtra(Constants.Extra.AUDIOS, audioJson)
-      })
-    } else {
-      mIsPlaying = true
-      showLoadingProgress(false)
-      mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-    }
+  override fun updateUI(audio: Audio) {
+    mTvTitle.text = audio.name
   }
 
   private fun setupToolbar() {

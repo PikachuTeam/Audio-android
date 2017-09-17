@@ -7,10 +7,9 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
+import android.view.View
 import android.view.ViewTreeObserver
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
@@ -31,14 +30,18 @@ import selft.yue.basekotlin.extension.getRealColor
  * Created by dongc on 9/1/2017.
  */
 class HomeActivity : BaseActivity(), HomeContract.View {
+
   private val mPresenter: HomeContract.Presenter<HomeContract.View> = HomePresenter(this)
 
   private val mRvAudios by lazy { rv_audios }
   private val mToolbar by lazy { toolbar }
   private val mBottomSheetMediaPlayer by lazy { bottom_sheet_media_player }
   private val mIvBackground by lazy { iv_background }
+  private val mCbBoyVoice by lazy { cb_boy_voice }
+  private val mCbGirlVoice by lazy { cb_girl_voice }
 
-  private val mBottomSheetBehavior by lazy { BottomSheetBehavior.from(mBottomSheetMediaPlayer) }
+  private var mCurrentPosition = -1
+
   private val mAdapter: AudiosAdapter = AudiosAdapter(this)
 
   private val mMediaControlReceiver = object : BroadcastReceiver() {
@@ -62,12 +65,15 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             if (!mBottomSheetMediaPlayer.isPlaying) {
               mBottomSheetMediaPlayer.isPlaying = true
             }
+
+            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
           }
           Constants.Action.MEDIA_PREVIOUS -> {
             if (!mBottomSheetMediaPlayer.isPlaying) {
-
               mBottomSheetMediaPlayer.isPlaying = true
             }
+
+            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
           }
           Constants.Action.MEDIA_UPDATE_PROGRESS -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
@@ -120,7 +126,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       addAction(Constants.Action.MEDIA_GET_CURRENT_STATE)
     })
 
-    if (mBottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
+    if (mBottomSheetMediaPlayer.visibility == View.VISIBLE)
       startService(Intent(this, MediaService::class.java).apply {
         action = Constants.Action.MEDIA_GET_CURRENT_STATE
       })
@@ -137,16 +143,33 @@ class HomeActivity : BaseActivity(), HomeContract.View {
   override fun refreshData(data: MutableList<Audio?>) {
     if (data.isNotEmpty()) {
       mAdapter.items = data
+      if (!mCbBoyVoice.isChecked && !mCbGirlVoice.isChecked) {
+        mAdapter.filter = AudiosAdapter.Voice.ALL
+      } else {
+        mAdapter.filter =
+                if (mCbBoyVoice.isChecked) AudiosAdapter.Voice.BOY
+                else AudiosAdapter.Voice.GIRL
+      }
     }
   }
 
-  override fun openMediaActivity(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean) {
+  override fun openMediaActivity() {
     LocalBroadcastManager.getInstance(this).unregisterReceiver(mMediaControlReceiver)
-    startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
+    startActivity(Intent(this@HomeActivity, MediaActivity::class.java))
+  }
+
+  override fun playAudios(audios: MutableList<Audio?>, chosenPosition: Int) {
+    startService(Intent(this, MediaService::class.java).apply {
+      action = Constants.Action.MEDIA_START
       putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
       putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
-      putExtra(Constants.Extra.IS_NEW, isNew)
     })
+
+    openMediaActivity()
+  }
+
+  override fun updateUI(audio: Audio) {
+    mBottomSheetMediaPlayer.setAudioName(audio.name)
   }
 
   private fun setupToolbar() {
@@ -161,20 +184,66 @@ class HomeActivity : BaseActivity(), HomeContract.View {
 
   private fun setUpRecyclerView() {
     mRvAudios.layoutManager = LinearLayoutManager(this)
-    mRvAudios.addItemDecoration(LinearItemDecoration(15, 30))
+    mRvAudios.addItemDecoration(LinearItemDecoration(25, 30))
     mRvAudios.adapter = mAdapter
   }
 
   private fun setEventListeners() {
     mAdapter.onMainItemClick = { position ->
-      // Control bottom sheet
-      if (mBottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED ||
-              mBottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
-        mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-      }
+      if (mBottomSheetMediaPlayer.visibility == View.GONE)
+        mBottomSheetMediaPlayer.visibility = View.VISIBLE
 
+      mCurrentPosition = position
       // Move to media activity
-      mPresenter.playAudio(position)
+      mPresenter.playAudios(position)
+    }
+
+    mCbGirlVoice.setOnCheckedChangeListener { _, isChecked ->
+      if (isChecked) {
+        if (mCbBoyVoice.isChecked) {
+          mAdapter.filter = AudiosAdapter.Voice.ALL
+        } else {
+          mAdapter.filter = AudiosAdapter.Voice.GIRL
+        }
+      } else {
+        if (!mCbBoyVoice.isChecked) {
+          mAdapter.filter = AudiosAdapter.Voice.ALL
+        } else {
+          mAdapter.filter = AudiosAdapter.Voice.BOY
+        }
+      }
+    }
+
+    mCbBoyVoice.setOnCheckedChangeListener { _, isChecked ->
+      if (isChecked) {
+        if (mCbGirlVoice.isChecked) {
+          mAdapter.filter = AudiosAdapter.Voice.ALL
+        } else {
+          mAdapter.filter = AudiosAdapter.Voice.BOY
+        }
+      } else {
+        if (!mCbGirlVoice.isChecked) {
+          mAdapter.filter = AudiosAdapter.Voice.ALL
+        } else {
+          mAdapter.filter = AudiosAdapter.Voice.GIRL
+        }
+      }
+    }
+
+    mBottomSheetMediaPlayer.onFunctionClickListener = { view ->
+      if (view.id == R.id.btn_play_pause) {
+        if (mBottomSheetMediaPlayer.isPlaying) {
+          startMediaService(Constants.Action.MEDIA_PAUSE)
+        } else {
+          startMediaService(Constants.Action.MEDIA_PLAY)
+        }
+      } else if (view.id == R.id.btn_next_audio) {
+        startMediaService(Constants.Action.MEDIA_NEXT)
+      } else if (view.id == R.id.btn_previous_audio) {
+        startMediaService(Constants.Action.MEDIA_PREVIOUS)
+      } else if (view.id == R.id.item_container) {
+        openMediaActivity()
+      }
     }
   }
 
@@ -203,6 +272,12 @@ class HomeActivity : BaseActivity(), HomeContract.View {
                 .setImageRequest(imageRequest)
                 .build()
       }
+    })
+  }
+
+  private fun startMediaService(action: String) {
+    startService(Intent(this, MediaService::class.java).apply {
+      this.action = action
     })
   }
 }

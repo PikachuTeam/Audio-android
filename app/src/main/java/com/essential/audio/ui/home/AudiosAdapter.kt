@@ -23,65 +23,94 @@ import selft.yue.basekotlin.adapter.normal.BaseAdapter
  * Created by dongc on 9/1/2017.
  */
 class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHolder>() {
-    private val mContext = context
+  enum class Voice {
+    ALL, GIRL, BOY
+  }
 
-    var onMainItemClick: ((position: Int) -> Unit)? = null
-        get() = field
-        set(value) {
-            field = value
-        }
+  private val mContext = context
+  private var mFilteredItems: MutableList<Audio?> = ArrayList()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder =
-            ItemHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_audio, parent, false))
-
-    override fun onBindViewHolder(holder: ItemHolder, position: Int) {
-        val audio = items[position]
-        audio?.run {
-            holder.tvAudioName.text = name
-            holder.tvNumberOfListeners.text = "0"
-
-            if (isGirlVoice) {
-                holder.tvGender.text = mContext.getString(R.string.girl)
-                holder.ivGender.setImageResource(R.drawable.ic_girl_underwear)
-            } else {
-                holder.tvGender.text = mContext.getString(R.string.boy)
-                holder.ivGender.setImageResource(R.drawable.ic_boy_underwear)
-            }
-
-            holder.ivCover.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    if (Build.VERSION.SDK_INT < 16)
-                        holder.ivCover.viewTreeObserver.removeGlobalOnLayoutListener(this)
-                    else
-                        holder.ivCover.viewTreeObserver.removeOnGlobalLayoutListener(this)
-
-                    val imageUri = Uri.parse(this@run.cover)
-
-                    val imageRequest = ImageRequestBuilder
-                            .newBuilderWithSource(imageUri)
-                            .setResizeOptions(ResizeOptions(holder.ivCover.width, holder.ivCover.height))
-                            .build()
-
-                    holder.ivCover.controller = Fresco.newDraweeControllerBuilder()
-                            .setOldController(holder.ivCover.controller)
-                            .setImageRequest(imageRequest)
-                            .build()
-                }
-            })
-
-            holder.itemContainer.setOnClickListener { onMainItemClick?.invoke(position) }
-        }
+  var filter = Voice.ALL
+    get() = field
+    set(value) {
+      field = value
+      if (value == Voice.ALL) {
+        mFilteredItems.clear()
+        mFilteredItems.addAll(items)
+        notifyDataSetChanged()
+      } else {
+        mFilteredItems.clear()
+        mFilteredItems.addAll(items.filter {
+          if (it != null) {
+            if (value == Voice.BOY)
+              !it.isGirlVoice
+            else
+              it.isGirlVoice
+          } else
+            false
+        })
+        notifyDataSetChanged()
+      }
     }
 
-    override fun findItem(item: Audio): Int = items.indices.firstOrNull { items[it]?.url.equals(item.url) } ?: -1
-
-    class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvAudioName = view.findViewById<TextView>(R.id.tv_title)
-        val ivCover = view.findViewById<SimpleDraweeView>(R.id.iv_cover)
-        val ivGender = view.findViewById<ImageView>(R.id.iv_gender)
-        val tvGender = view.findViewById<TextView>(R.id.tv_gender)
-        val tvDuration = view.findViewById<TextView>(R.id.tv_duration)
-        val tvNumberOfListeners = view.findViewById<TextView>(R.id.tv_number_of_listeners)
-        val itemContainer = view.findViewById<View>(R.id.item_container)
+  var onMainItemClick: ((position: Int) -> Unit)? = null
+    get() = field
+    set(value) {
+      field = value
     }
+
+  override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder =
+          ItemHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_audio, parent, false))
+
+  override fun onBindViewHolder(holder: ItemHolder, position: Int) {
+    val audio = mFilteredItems[position]
+    audio?.run {
+      holder.tvAudioName.text = name
+
+      if (isGirlVoice) {
+        holder.tvGender.text = mContext.getString(R.string.girl)
+        holder.ivGender.setImageResource(R.drawable.ic_girl_underwear)
+      } else {
+        holder.tvGender.text = mContext.getString(R.string.boy)
+        holder.ivGender.setImageResource(R.drawable.ic_boy_underwear)
+      }
+
+      holder.ivCover.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        override fun onGlobalLayout() {
+          if (Build.VERSION.SDK_INT < 16)
+            holder.ivCover.viewTreeObserver.removeGlobalOnLayoutListener(this)
+          else
+            holder.ivCover.viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+          val imageUri = Uri.parse(this@run.cover)
+
+          val imageRequest = ImageRequestBuilder
+                  .newBuilderWithSource(imageUri)
+                  .setResizeOptions(ResizeOptions(holder.ivCover.width, holder.ivCover.height))
+                  .build()
+
+          holder.ivCover.controller = Fresco.newDraweeControllerBuilder()
+                  .setOldController(holder.ivCover.controller)
+                  .setImageRequest(imageRequest)
+                  .build()
+        }
+      })
+
+      holder.itemContainer.setOnClickListener { onMainItemClick?.invoke(position) }
+    }
+  }
+
+  override fun getItemCount(): Int {
+    return mFilteredItems.size
+  }
+
+  override fun findItem(item: Audio): Int = items.indices.firstOrNull { items[it]?.url.equals(item.url) } ?: -1
+
+  class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
+    val tvAudioName = view.findViewById<TextView>(R.id.tv_title)
+    val ivCover = view.findViewById<SimpleDraweeView>(R.id.iv_cover)
+    val ivGender = view.findViewById<ImageView>(R.id.iv_gender)
+    val tvGender = view.findViewById<TextView>(R.id.tv_gender)
+    val itemContainer = view.findViewById<View>(R.id.item_container)
+  }
 }

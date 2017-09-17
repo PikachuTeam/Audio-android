@@ -9,4 +9,8 @@
 
     <color name="black">#000000</color>
     <color name="white">#ffffff</color>
+    <color name="red">#a90a0a</color>
+
+    <color name="bottom_sheet_color">#50000000</color>
+    <color name="item_audio_color">#64ffffff</color>
 </resources>

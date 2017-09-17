@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="media_progress_height">3dp</dimen>
+    <dimen name="media_progress_height">1.5dp</dimen>
 
     <dimen name="default_vertical_space">10dp</dimen>
     <dimen name="default_horizontal_space">15dp</dimen>

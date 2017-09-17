@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Audio</string>
 
-    <string name="boy">Nam</string>
-    <string name="girl">Nu</string>
+    <string name="boy">Giọng nam</string>
+    <string name="girl">Giọng nữ</string>
+    <string name="list">Danh sách</string>
 </resources>

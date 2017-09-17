@@ -8,11 +8,12 @@ object Constants {
   object Extra {
     val AUDIOS = "AUDIOS"
     val CHOSEN_AUDIO = "CHOSEN_AUDIO"
-    val IS_NEW = "IS_NEW"
     val DURATION = "DURATION"
     val AUDIO_NAME = "AUDIO_NAME"
     val PROGRESS = "PROGRESS"
     val IS_PLAYING = "IS_PLAYING"
+    val IS_PREPARING = "IS_PREPARING"
+    val CURRENT_AUDIO = "CURRENT_AUDIO"
   }
 
   object Action {

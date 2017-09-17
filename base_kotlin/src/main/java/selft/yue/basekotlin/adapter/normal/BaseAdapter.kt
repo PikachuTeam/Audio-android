@@ -19,13 +19,13 @@ abstract class BaseAdapter<E, VH : RecyclerView.ViewHolder> : RecyclerView.Adapt
         return mItems.size
     }
 
-    fun addItems(items: MutableList<E>) {
+    open fun addItems(items: MutableList<E>) {
         val previousSize = mItems.size
         mItems.addAll(items)
         notifyItemRangeChanged(previousSize, items.size)
     }
 
-    fun removeItem(item: E) {
+    open fun removeItem(item: E) {
         val indexOfFoundItem = findItem(item)
         if (indexOfFoundItem != -1) {
             mItems.removeAt(indexOfFoundItem)

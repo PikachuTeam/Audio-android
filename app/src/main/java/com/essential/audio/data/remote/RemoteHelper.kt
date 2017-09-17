@@ -11,28 +11,53 @@ import com.parse.ParseQuery
  */
 object RemoteHelper {
 
-    fun fetchAudios(callback: OnRemoteResponse<MutableList<Audio?>>) {
-        val query: ParseQuery<ParseObject> = ParseQuery.getQuery(Tables.Audio.NAME)
-        query.findInBackground { parseObjects, ex ->
-            if (ex == null) {
-                if (parseObjects.size == 0) {
-                    callback.onError(Throwable("No results"))
-                } else {
-                    val audios: MutableList<Audio?> = ArrayList()
+  fun fetchAudios(callback: OnRemoteResponse<MutableList<Audio?>>) {
+    val query: ParseQuery<ParseObject> = ParseQuery.getQuery(Tables.Audio.NAME)
+    query.findInBackground { parseObjects, ex ->
+      if (ex == null) {
+        if (parseObjects.size == 0) {
+          callback.onError(Throwable("No results"))
+        } else {
+          val audios: MutableList<Audio?> = ArrayList()
 
-                    parseObjects.forEach {
-                        val name = it.getString(Tables.Audio.COLUMN_NAME)
-                        val isGirlVoice = it.getNumber(Tables.Audio.COLUMN_SPEAKER) == 0
-                        val url = it.getParseFile(Tables.Audio.COLUMN_FILE).url
-                        val cover = it.getString(Tables.Audio.COLUMN_COVER)
-                        audios.add(Audio(name, url, isGirlVoice, cover))
-                    }
+          parseObjects.forEach {
+            val name = it.getString(Tables.Audio.COLUMN_NAME)
+            val isGirlVoice = it.getNumber(Tables.Audio.COLUMN_SPEAKER) == 0
+            val url = it.getParseFile(Tables.Audio.COLUMN_FILE).url
+            val cover = it.getString(Tables.Audio.COLUMN_COVER)
+            audios.add(Audio(name, url, isGirlVoice, cover))
+          }
 
-                    callback.onSuccess(audios)
-                }
-            } else {
-                callback.onError(Throwable(ex.message))
-            }
+          callback.onSuccess(audios)
         }
+      } else {
+        callback.onError(Throwable(ex.message))
+      }
     }
+  }
+
+  fun fetchTdAudios(callback: OnRemoteResponse<MutableList<Audio?>>) {
+    val query: ParseQuery<ParseObject> = ParseQuery.getQuery(Tables.TdAudio.NAME)
+    query.findInBackground { parseObjects, ex ->
+      if (ex == null) {
+        if (parseObjects.size == 0) {
+          callback.onError(Throwable("No results"))
+        } else {
+          val audios: MutableList<Audio?> = ArrayList()
+
+          parseObjects.forEach {
+            val name = it.getString(Tables.TdAudio.COLUMN_NAME)
+            val isGirlVoice = it.getNumber(Tables.TdAudio.COLUMN_SPEAKER) == 0
+            val url = it.getString(Tables.TdAudio.COLUMN_FILE)
+            val cover = it.getString(Tables.TdAudio.COLUMN_COVER)
+            audios.add(Audio(name, url, isGirlVoice, cover))
+          }
+
+          callback.onSuccess(audios)
+        }
+      } else {
+        callback.onError(Throwable(ex.message))
+      }
+    }
+  }
 }

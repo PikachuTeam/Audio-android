@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:background="@android:color/transparent"
-              android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="vertical">
 
     <com.essential.audio.widget.MediaProgressBar
         android:id="@+id/progress_media"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:progressHeight="1.5dp"/>
+        app:progressHeight="1.5dp" />
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/black">
+        android:background="@color/bottom_sheet_color">
 
         <TextView
             android:id="@+id/tv_audio_name"
@@ -23,36 +24,35 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/default_horizontal_space"
             android:layout_marginRight="@dimen/default_horizontal_space"
-            android:layout_marginTop="@dimen/default_vertical_space"
+            android:layout_marginTop="5dp"
             android:textColor="@color/white"
             android:textSize="18sp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_audio_duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="@dimen/default_horizontal_space"
-            android:layout_marginTop="@dimen/default_vertical_space"
+            android:layout_marginTop="5dp"
             android:textColor="@color/white"
             android:textSize="18sp"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/btn_play_pause"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginBottom="5dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="10dp"
             android:src="@drawable/ic_play"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_audio_name"/>
+            app:layout_constraintTop_toBottomOf="@id/tv_audio_name" />
 
         <ImageView
             android:id="@+id/btn_next_audio"
@@ -65,7 +65,7 @@
             android:src="@drawable/ic_next_audio"
             app:layout_constraintBottom_toBottomOf="@+id/btn_play_pause"
             app:layout_constraintLeft_toRightOf="@+id/btn_play_pause"
-            app:layout_constraintTop_toTopOf="@+id/btn_play_pause"/>
+            app:layout_constraintTop_toTopOf="@+id/btn_play_pause" />
 
         <ImageView
             android:id="@+id/btn_previous_audio"
@@ -78,18 +78,6 @@
             android:src="@drawable/ic_previous_audio"
             app:layout_constraintBottom_toBottomOf="@+id/btn_play_pause"
             app:layout_constraintRight_toLeftOf="@+id/btn_play_pause"
-            app:layout_constraintTop_toTopOf="@+id/btn_play_pause"/>
-
-        <ImageView
-            android:id="@+id/btn_expand"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="5dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="10dp"
-            android:src="@drawable/ic_expand"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_audio_name"/>
+            app:layout_constraintTop_toTopOf="@+id/btn_play_pause" />
     </android.support.constraint.ConstraintLayout>
 </LinearLayout>

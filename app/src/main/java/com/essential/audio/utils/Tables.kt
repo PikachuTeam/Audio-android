@@ -12,4 +12,12 @@ object Tables {
         val COLUMN_SPEAKER = "speaker"
         val COLUMN_COVER = "image_url"
     }
+
+    object TdAudio{
+        val NAME = "tbl_tdaudio"
+        val COLUMN_NAME = "name"
+        val COLUMN_FILE = "audio"
+        val COLUMN_SPEAKER = "speaker"
+        val COLUMN_COVER = "image"
+    }
 }

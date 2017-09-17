@@ -1,48 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                                 xmlns:app="http://schemas.android.com/apk/res-auto"
-                                                 android:layout_width="match_parent"
-                                                 android:layout_height="match_parent">
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <com.facebook.drawee.view.SimpleDraweeView
         android:id="@+id/iv_background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/default_background_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/default_background_color"/>
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/transparent"
+        app:contentInsetLeft="0dp"
+        app:contentInsetRight="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/list"
+            android:textColor="@color/white"
+            android:textSize="22sp" />
+    </android.support.v7.widget.Toolbar>
+
+    <com.essential.audio.widget.MediaPlayerBottomSheet
+        android:id="@+id/bottom_sheet_media_player"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent"
-        android:orientation="vertical">
+        android:id="@+id/check_box_area"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/default_vertical_space"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/transparent"
-            app:contentInsetLeft="0dp"
-            app:contentInsetRight="0dp">
+        <CheckBox
+            android:id="@+id/cb_boy_voice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/WhiteCheckBox" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="@string/app_name"
-                android:textColor="@color/white"
-                android:textSize="22sp"/>
-        </android.support.v7.widget.Toolbar>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="@dimen/default_horizontal_space"
+            android:text="@string/boy"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv_audios"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/transparent"/>
+        <CheckBox
+            android:id="@+id/cb_girl_voice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/WhiteCheckBox" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/girl"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
     </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_audios"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_sheet_media_player"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/check_box_area" />
 
     <View
         android:layout_width="match_parent"
@@ -50,13 +106,5 @@
         android:layout_marginLeft="-320dp"
         android:layout_marginStart="-320dp"
         android:layout_marginTop="-450dp"
-        android:background="@drawable/vertical_gradient"
-        app:layout_anchorGravity="start"/>
-
-    <com.essential.audio.widget.MediaPlayerBottomSheet
-        android:id="@+id/bottom_sheet_media_player"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:behavior_peekHeight="0dp"
-        app:layout_behavior="com.essential.audio.widget.UndraggableBottomSheetBehavior"/>
-</android.support.design.widget.CoordinatorLayout>
+        android:background="@drawable/vertical_gradient" />
+</android.support.constraint.ConstraintLayout>

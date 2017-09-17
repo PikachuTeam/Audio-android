@@ -8,18 +8,22 @@ import selft.yue.basekotlin.util.HasNormalRecyclerView
  * Created by dongc on 9/1/2017.
  */
 interface HomeContract {
-    interface View : BaseContract.View, HasNormalRecyclerView<Audio?> {
-        fun openMediaActivity(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean)
-    }
+  interface View : BaseContract.View, HasNormalRecyclerView<Audio?> {
+    fun openMediaActivity()
 
-    interface Presenter<V : View> : BaseContract.Presenter<V> {
-        /**
-         * Load data from remote or local
-         */
-        fun loadData()
+    fun playAudios(audios: MutableList<Audio?>, chosenPosition: Int)
 
-        fun playAudio(position: Int)
+    fun updateUI(audio: Audio)
+  }
 
-        fun playAudios()
-    }
+  interface Presenter<V : View> : BaseContract.Presenter<V> {
+    /**
+     * Load data from remote or local
+     */
+    fun loadData()
+
+    fun playAudios(position: Int)
+
+    fun updateData(audioJsonString: String)
+  }
 }

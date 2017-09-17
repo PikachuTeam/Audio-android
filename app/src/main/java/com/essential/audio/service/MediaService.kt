@@ -71,27 +71,50 @@ class MediaService : Service() {
     intent?.run {
       when (intent.action) {
         Constants.Action.MEDIA_START -> {
+          val chosenAudio = intent.getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
           mPaused = false
-          mMediaController.audios = JsonHelper.instance.fromJson(
-                  intent.getStringExtra(Constants.Extra.AUDIOS),
-                  genericType<MutableList<Audio>>())
-          mMediaController.currentPosition = 0
-          mMediaController.start()
-          LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PREPARING).apply {
-            putExtra(Constants.Extra.AUDIO_NAME, mMediaController.getCurrentAudio().name)
-          })
-          mNotificationHelper.createNotification(mMediaController.getCurrentAudio(), false, true, true)
+          if (mMediaController.currentPosition == -1 ||
+                  mMediaController.currentPosition != chosenAudio) {
+            mMediaController.audios = JsonHelper.instance.fromJson(
+                    intent.getStringExtra(Constants.Extra.AUDIOS),
+                    genericType<MutableList<Audio>>())
+            mMediaController.currentPosition = chosenAudio
+
+            mMediaController.start()
+
+            LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PREPARING).apply {
+              putExtra(Constants.Extra.AUDIO_NAME, mMediaController.getCurrentAudio().name)
+            })
+
+            mNotificationHelper.createNotification(mMediaController.getCurrentAudio(), false, true, true)
+          } else {
+            mMediaController.play()
+          }
         }
         Constants.Action.MEDIA_SEEK_TO -> {
           mMediaController.seekTo(intent.getIntExtra(Constants.Extra.PROGRESS, 0))
         }
         Constants.Action.MEDIA_GET_CURRENT_STATE -> {
-          LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_GET_CURRENT_STATE).apply {
-            putExtra(Constants.Extra.IS_PLAYING, !mPaused)
-            putExtra(Constants.Extra.AUDIO_NAME, mMediaController.getCurrentAudio().name)
-            putExtra(Constants.Extra.PROGRESS, mMediaController.player.currentPosition)
-            putExtra(Constants.Extra.DURATION, mMediaController.player.duration)
-          })
+          LocalBroadcastManager.getInstance(this@MediaService)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_GET_CURRENT_STATE).apply {
+                    putExtra(Constants.Extra.IS_PLAYING, mMediaController.isPlaying())
+                    putExtra(
+                            Constants.Extra.AUDIO_NAME,
+                            mMediaController.getCurrentAudio().name
+                    )
+                    putExtra(
+                            Constants.Extra.PROGRESS,
+                            mMediaController.player.currentPosition
+                    )
+                    putExtra(
+                            Constants.Extra.DURATION,
+                            mMediaController.player.duration
+                    )
+                    putExtra(
+                            Constants.Extra.IS_PREPARING,
+                            mMediaController.isPreparing
+                    )
+                  })
         }
         Constants.Action.MEDIA_START_UPDATE_PROGRESS -> {
           mIsUpdatingProgress = true
@@ -121,7 +144,8 @@ class MediaService : Service() {
     intent?.run {
       when (intent.action) {
         Constants.Action.MEDIA_PLAY -> {
-          LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PLAY))
+          LocalBroadcastManager.getInstance(this@MediaService)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_PLAY))
 
           mTimeHandler?.post(mUpdateTimeTask)
           mMediaController.play()
@@ -129,24 +153,35 @@ class MediaService : Service() {
         }
         Constants.Action.MEDIA_PREVIOUS -> {
           if (mPaused) {
-            LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PLAY))
             mTimeHandler?.post(mUpdateTimeTask)
           }
-
           mMediaController.previous()
+          LocalBroadcastManager.getInstance(this@MediaService)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_PREVIOUS).apply {
+                    putExtra(
+                            Constants.Extra.CURRENT_AUDIO,
+                            JsonHelper.instance.toJson(mMediaController.getCurrentAudio())
+                    )
+                  })
           mPaused = false
         }
         Constants.Action.MEDIA_NEXT -> {
           if (mPaused) {
-            LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PLAY))
             mTimeHandler?.post(mUpdateTimeTask)
           }
-
           mMediaController.next()
+          LocalBroadcastManager.getInstance(this@MediaService)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_NEXT).apply {
+                    putExtra(
+                            Constants.Extra.CURRENT_AUDIO,
+                            JsonHelper.instance.toJson(mMediaController.getCurrentAudio())
+                    )
+                  })
           mPaused = false
         }
         Constants.Action.MEDIA_PAUSE -> {
-          LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PAUSE))
+          LocalBroadcastManager.getInstance(this@MediaService)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_PAUSE))
 
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
@@ -157,35 +192,51 @@ class MediaService : Service() {
         }
       }
     }
-    mNotificationHelper.createNotification(mMediaController.getCurrentAudio(), false, isPlaying, onGoing)
+    mNotificationHelper.createNotification(
+            mMediaController.getCurrentAudio(),
+            false,
+            isPlaying,
+            onGoing)
   }
 
   private fun setEventListeners() {
     mMediaController.setOnPreparedListener(MediaPlayer.OnPreparedListener {
+      mMediaController.isPreparing = false
       if (!mPaused) {
         mMediaController.seekTo(0)
         mMediaController.play()
         mTimeHandler?.post(mUpdateTimeTask)
-        LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PREPARED).apply {
-          putExtra(Constants.Extra.DURATION, mMediaController.player.duration)
-        })
+        LocalBroadcastManager.getInstance(this@MediaService)
+                .sendBroadcast(Intent(Constants.Action.MEDIA_PREPARED).apply {
+                  putExtra(Constants.Extra.DURATION, mMediaController.player.duration)
+                })
       }
     })
 
-    mMediaController.setOnBufferingUpdateListener(MediaPlayer.OnBufferingUpdateListener { _, i ->
-      LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(
-              Intent(Constants.Action.MEDIA_BUFFERING).apply { putExtra(Constants.Extra.PROGRESS, i) })
-    })
+    mMediaController.setOnBufferingUpdateListener(
+            MediaPlayer.OnBufferingUpdateListener { _, i ->
+              LocalBroadcastManager.getInstance(this@MediaService)
+                      .sendBroadcast(Intent(Constants.Action.MEDIA_BUFFERING).apply {
+                        putExtra(Constants.Extra.PROGRESS, i)
+                      })
+            })
 
     mMediaController.setOnMediaPlayerStateListener(object : OnMediaStateListener {
       override fun onFinishPlaying() {
-        mNotificationHelper.createNotification(mMediaController.getCurrentAudio(), false, false, false)
+        mNotificationHelper.createNotification(
+                mMediaController.getCurrentAudio(),
+                false,
+                false,
+                false
+        )
         mTimeHandler?.removeCallbacks(mUpdateTimeTask)
-        LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_FINISH_PLAYING))
+        LocalBroadcastManager.getInstance(this@MediaService)
+                .sendBroadcast(Intent(Constants.Action.MEDIA_FINISH_PLAYING))
       }
 
       override fun onAudioCompleted() {
-        LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_COMPLETED))
+        LocalBroadcastManager.getInstance(this@MediaService)
+                .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_COMPLETED))
       }
     })
   }
