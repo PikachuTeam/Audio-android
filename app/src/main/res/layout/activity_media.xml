@@ -5,14 +5,43 @@
                                              android:layout_height="match_parent"
                                              android:orientation="vertical">
 
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/iv_background"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/default_background_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
+        android:background="@android:color/transparent"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textColor="@color/white"
+            android:textSize="20sp"/>
+    </android.support.v7.widget.Toolbar>
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/area_media_controller"
@@ -47,25 +76,25 @@
             android:id="@+id/seek_bar_duration"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="@id/tv_current_time"
-            app:layout_constraintLeft_toRightOf="@id/tv_current_time"
-            app:layout_constraintRight_toLeftOf="@id/tv_rest_time"
-            app:layout_constraintTop_toTopOf="@id/tv_current_time"
-            app:layout_constraintVertical_bias="0.5"/>
+            app:layout_constraintBottom_toBottomOf="@+id/tv_current_time"
+            app:layout_constraintLeft_toRightOf="@+id/tv_current_time"
+            app:layout_constraintRight_toLeftOf="@+id/tv_rest_time"
+            app:layout_constraintTop_toTopOf="@+id/tv_current_time"/>
 
         <ImageView
             android:id="@+id/btn_play_pause"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginBottom="@dimen/default_vertical_space"
+            android:layout_marginTop="@dimen/default_vertical_space"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="10dp"
             android:src="@drawable/ic_play"
-            android:visibility="invisible"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/seek_bar_duration"/>
+            app:layout_constraintTop_toBottomOf="@+id/seek_bar_duration"/>
 
         <ImageView
             android:id="@+id/btn_next_audio"
@@ -76,9 +105,9 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="10dp"
             android:src="@drawable/ic_next_audio"
-            app:layout_constraintBottom_toBottomOf="@id/btn_play_pause"
-            app:layout_constraintLeft_toRightOf="@id/btn_play_pause"
-            app:layout_constraintTop_toTopOf="@id/btn_play_pause"/>
+            app:layout_constraintBottom_toBottomOf="@+id/btn_play_pause"
+            app:layout_constraintLeft_toRightOf="@+id/btn_play_pause"
+            app:layout_constraintTop_toTopOf="@+id/btn_play_pause"/>
 
         <ImageView
             android:id="@+id/btn_previous_audio"
@@ -89,27 +118,38 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="10dp"
             android:src="@drawable/ic_previous_audio"
-            app:layout_constraintBottom_toBottomOf="@id/btn_play_pause"
-            app:layout_constraintRight_toLeftOf="@id/btn_play_pause"
-            app:layout_constraintTop_toTopOf="@id/btn_play_pause"/>
+            app:layout_constraintBottom_toBottomOf="@+id/btn_play_pause"
+            app:layout_constraintRight_toLeftOf="@+id/btn_play_pause"
+            app:layout_constraintTop_toTopOf="@+id/btn_play_pause"/>
 
         <ProgressBar
             android:id="@+id/loading_progress"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:layout_marginBottom="@dimen/default_vertical_space"
             android:indeterminateDrawable="@drawable/bg_progress_indeterminate"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/btn_play_pause"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/seek_bar_duration"/>
+            app:layout_constraintTop_toTopOf="@+id/btn_play_pause"/>
     </android.support.constraint.ConstraintLayout>
+
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:layout_width="0dp"
+        android:layout_height="300dp"
+        android:layout_marginLeft="@dimen/default_horizontal_space"
+        android:layout_marginRight="@dimen/default_horizontal_space"
+        app:layout_constraintBottom_toTopOf="@id/area_media_controller"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"/>
 
     <FrameLayout
         android:id="@+id/image_player"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/area_media_controller"
+        app:layout_constraintBottom_toTopOf="@+id/area_media_controller"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"/>
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
 </android.support.constraint.ConstraintLayout>

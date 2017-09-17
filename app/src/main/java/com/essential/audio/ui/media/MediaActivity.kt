@@ -5,13 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaPlayer
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.AppCompatSeekBar
 import android.support.v7.widget.Toolbar
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.SeekBar
@@ -21,6 +23,11 @@ import com.essential.audio.data.model.Audio
 import com.essential.audio.service.MediaService
 import com.essential.audio.utils.Constants
 import com.essential.audio.widget.DateTimeUtils
+import com.facebook.common.util.UriUtil
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.drawee.view.SimpleDraweeView
+import com.facebook.imagepipeline.common.ResizeOptions
+import com.facebook.imagepipeline.request.ImageRequestBuilder
 import kotlinx.android.synthetic.main.activity_media.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.extension.getRealColor
@@ -39,6 +46,8 @@ class MediaActivity : BaseActivity(), MediaContract.View {
   private val mSeekBar: AppCompatSeekBar by lazy { seek_bar_duration }
   private val mLoadingProgress: ProgressBar by lazy { loading_progress }
   private val mButtonPlayPause: ImageView by lazy { btn_play_pause }
+  private val mIvBackground: SimpleDraweeView by lazy { iv_background }
+  private val mTvTitle: TextView by lazy { tv_title }
   private var mIsPlaying: Boolean = false
 
   private val mMediaControlReceiver = object : BroadcastReceiver() {
@@ -98,6 +107,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
     super.onCreate(savedInstanceState)
 
     setupToolbar()
+    setBackground()
 
     mPresenter.loadData(intent)
 
@@ -114,7 +124,6 @@ class MediaActivity : BaseActivity(), MediaContract.View {
       addAction(Constants.Action.MEDIA_PREVIOUS)
       addAction(Constants.Action.MEDIA_FINISH_PLAYING)
       addAction(Constants.Action.MEDIA_UPDATE_PROGRESS)
-//      addAction(Constants.Action.MEDIA_GET_CURRENT_STATE)
     })
     super.onResume()
   }
@@ -126,7 +135,8 @@ class MediaActivity : BaseActivity(), MediaContract.View {
   }
 
   override fun setupUI(audio: Audio) {
-    mToolbar.title = audio.name
+//    mToolbar.title = audio.name
+    mTvTitle.text = audio.name
   }
 
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -154,11 +164,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
     setSupportActionBar(mToolbar)
     supportActionBar?.run {
       setDisplayShowTitleEnabled(false)
-      setDisplayHomeAsUpEnabled(true)
-      setHomeAsUpIndicator(R.drawable.ic_back)
     }
-
-    mToolbar.setTitleTextColor(getRealColor(R.color.white))
   }
 
   private fun showLoadingProgress(showed: Boolean) {
@@ -219,6 +225,34 @@ class MediaActivity : BaseActivity(), MediaContract.View {
   private fun startMediaService(action: String) {
     startService(Intent(this, MediaService::class.java).apply {
       this.action = action
+    })
+  }
+
+  private fun setBackground() {
+    mIvBackground.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+      override fun onGlobalLayout() {
+        if (Build.VERSION.SDK_INT < 16)
+          mIvBackground.viewTreeObserver.removeGlobalOnLayoutListener(this)
+        else
+          mIvBackground.viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+        val temp = "" + R.drawable.app_background_2
+
+        val imageUri = Uri.Builder()
+                .scheme(UriUtil.LOCAL_RESOURCE_SCHEME)
+                .path(temp)
+                .build()
+
+        val imageRequest = ImageRequestBuilder
+                .newBuilderWithSource(imageUri)
+                .setResizeOptions(ResizeOptions(mIvBackground.width, mIvBackground.height))
+                .build()
+
+        mIvBackground.controller = Fresco.newDraweeControllerBuilder()
+                .setOldController(mIvBackground.controller)
+                .setImageRequest(imageRequest)
+                .build()
+      }
     })
   }
 }
