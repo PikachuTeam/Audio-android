@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'io.fabric'
 
 android {
     compileSdkVersion 26
@@ -40,6 +41,10 @@ dependencies {
 
     compile 'com.parse:parse-android:1.15.7'
     compile 'com.facebook.fresco:fresco:1.5.0'
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
+        transitive = true;
+    }
 
     compile project(':base_kotlin')
 }

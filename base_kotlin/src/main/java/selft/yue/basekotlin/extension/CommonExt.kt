@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.support.annotation.IntegerRes
 import android.support.v4.content.ContextCompat
+import android.util.DisplayMetrics
 import android.widget.EditText
 
 /**
@@ -19,3 +20,8 @@ fun Context.isNetworkAvailable(): Boolean = with(getSystemService(Context.CONNEC
 }
 
 fun Context.getRealColor(@IntegerRes colorResId: Int): Int = ContextCompat.getColor(this, colorResId)
+
+fun Context.convertDpToPixel(dimension: Float): Int {
+    val displayMetrics = resources.displayMetrics
+    return (dimension * displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT).toInt()
+}

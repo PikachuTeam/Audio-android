@@ -33,5 +33,9 @@
             android:screenOrientation="portrait"/>
 
         <service android:name=".service.MediaService"/>
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="85a166ee5e0caa2ccdcc1e24b211821d0d4a4d12" />
     </application>
 </manifest>

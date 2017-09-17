@@ -8,17 +8,19 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.ViewTreeObserver
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
+import com.essential.audio.service.MediaService
 import com.essential.audio.ui.media.MediaActivity
 import com.essential.audio.utils.Constants
 import com.essential.audio.utils.JsonHelper
 import com.facebook.common.util.UriUtil
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.common.ResizeOptions
-import com.facebook.imagepipeline.request.ImageRequest
 import com.facebook.imagepipeline.request.ImageRequestBuilder
 import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
@@ -29,134 +31,178 @@ import selft.yue.basekotlin.extension.getRealColor
  * Created by dongc on 9/1/2017.
  */
 class HomeActivity : BaseActivity(), HomeContract.View {
-    private val mPresenter: HomeContract.Presenter<HomeContract.View> = HomePresenter(this)
+  private val mPresenter: HomeContract.Presenter<HomeContract.View> = HomePresenter(this)
 
-    private val mRvAudios by lazy { rv_audios }
-    private val mToolbar by lazy { toolbar }
-    private val mBottomSheetMediaPlayer by lazy { bottom_sheet_media_player }
-    private val mIvBackground by lazy { iv_background }
+  private val mRvAudios by lazy { rv_audios }
+  private val mToolbar by lazy { toolbar }
+  private val mBottomSheetMediaPlayer by lazy { bottom_sheet_media_player }
+  private val mIvBackground by lazy { iv_background }
 
-    private val mBottomSheetBehavior by lazy { BottomSheetBehavior.from(mBottomSheetMediaPlayer) }
-    private val mAdapter: AudiosAdapter = AudiosAdapter(this)
+  private val mBottomSheetBehavior by lazy { BottomSheetBehavior.from(mBottomSheetMediaPlayer) }
+  private val mAdapter: AudiosAdapter = AudiosAdapter(this)
 
-    private val mMediaControlReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.run {
-                when (action) {
-                    Constants.Action.MEDIA_PREPARING -> {
-                    }
-                    Constants.Action.MEDIA_PREPARED -> {
-                    }
-                    Constants.Action.MEDIA_PLAY -> {
-                    }
-                    Constants.Action.MEDIA_PAUSE -> {
-                    }
-                }
+  private val mMediaControlReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+      intent?.run {
+        when (action) {
+          Constants.Action.MEDIA_PREPARING -> {
+            mBottomSheetMediaPlayer.setAudioName(getStringExtra(Constants.Extra.AUDIO_NAME))
+            mBottomSheetMediaPlayer.isPlaying = false
+          }
+          Constants.Action.MEDIA_PREPARED -> {
+            mBottomSheetMediaPlayer.isPlaying = true
+          }
+          Constants.Action.MEDIA_PLAY -> {
+            mBottomSheetMediaPlayer.isPlaying = true
+          }
+          Constants.Action.MEDIA_PAUSE, Constants.Action.MEDIA_FINISH_PLAYING -> {
+            mBottomSheetMediaPlayer.isPlaying = false
+          }
+          Constants.Action.MEDIA_NEXT -> {
+            if (!mBottomSheetMediaPlayer.isPlaying) {
+              mBottomSheetMediaPlayer.isPlaying = true
             }
-        }
-    }
+          }
+          Constants.Action.MEDIA_PREVIOUS -> {
+            if (!mBottomSheetMediaPlayer.isPlaying) {
 
-    override fun getLayoutResId(): Int = R.layout.activity_home
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        setupToolbar()
-        setUpRecyclerView()
-        setEventListeners()
-        setBackground()
-
-        mPresenter.loadData()
-    }
-
-    override fun onResume() {
-        registerReceiver(mMediaControlReceiver, IntentFilter().apply {
-            addAction(Constants.Action.MEDIA_PREPARING)
-            addAction(Constants.Action.MEDIA_PREPARED)
-            addAction(Constants.Action.MEDIA_PLAY)
-            addAction(Constants.Action.MEDIA_PAUSE)
-        })
-        super.onResume()
-    }
-
-    override fun onStop() {
-        unregisterReceiver(mMediaControlReceiver)
-        super.onStop()
-    }
-
-    override fun onDestroy() {
-        mPresenter.dispose()
-        super.onDestroy()
-    }
-
-    override fun refreshData(data: MutableList<Audio?>) {
-        if (data.isNotEmpty()) {
-            mAdapter.items = data
-        }
-    }
-
-    override fun openMediaActivity(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean) {
-        startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
-            putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
-            putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
-            putExtra(Constants.Extra.IS_NEW, isNew)
-        })
-    }
-
-    private fun setupToolbar() {
-        setSupportActionBar(mToolbar)
-        supportActionBar?.run {
-            setDisplayShowTitleEnabled(false)
-            setDisplayHomeAsUpEnabled(false)
-        }
-
-        mToolbar.setTitleTextColor(getRealColor(R.color.white))
-    }
-
-    private fun setUpRecyclerView() {
-        mRvAudios.layoutManager = LinearLayoutManager(this)
-        mRvAudios.addItemDecoration(LinearItemDecoration(15, 30))
-        mRvAudios.adapter = mAdapter
-    }
-
-    private fun setEventListeners() {
-        mAdapter.onMainItemClick = { position ->
-            // Control bottom sheet
-            if (mBottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED ||
-                    mBottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
-                mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+              mBottomSheetMediaPlayer.isPlaying = true
             }
+          }
+          Constants.Action.MEDIA_UPDATE_PROGRESS -> {
+            val duration = getIntExtra(Constants.Extra.DURATION, 0)
+            val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
 
-            // Move to media activity
-            mPresenter.playAudio(position)
+            if (!mBottomSheetMediaPlayer.isPlaying)
+              mBottomSheetMediaPlayer.isPlaying = true
+
+            if (mBottomSheetMediaPlayer.getMax() != duration)
+              mBottomSheetMediaPlayer.setMax(duration)
+            mBottomSheetMediaPlayer.setProgress(currentPosition)
+          }
+          Constants.Action.MEDIA_GET_CURRENT_STATE -> {
+            val duration = getIntExtra(Constants.Extra.DURATION, 0)
+            val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
+            val audioName = getStringExtra(Constants.Extra.AUDIO_NAME)
+            mBottomSheetMediaPlayer.setAudioName(audioName)
+            mBottomSheetMediaPlayer.isPlaying = getBooleanExtra(Constants.Extra.IS_PLAYING, false)
+            mBottomSheetMediaPlayer.setMax(duration)
+            mBottomSheetMediaPlayer.setProgress(currentPosition)
+          }
         }
+      }
+    }
+  }
+
+  override fun getLayoutResId(): Int = R.layout.activity_home
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    setupToolbar()
+    setUpRecyclerView()
+    setEventListeners()
+    setBackground()
+
+    mPresenter.loadData()
+  }
+
+  override fun onResume() {
+    LocalBroadcastManager.getInstance(this).registerReceiver(mMediaControlReceiver, IntentFilter().apply {
+      addAction(Constants.Action.MEDIA_PREPARING)
+      addAction(Constants.Action.MEDIA_PREPARED)
+      addAction(Constants.Action.MEDIA_PLAY)
+      addAction(Constants.Action.MEDIA_PAUSE)
+      addAction(Constants.Action.MEDIA_NEXT)
+      addAction(Constants.Action.MEDIA_PREVIOUS)
+      addAction(Constants.Action.MEDIA_FINISH_PLAYING)
+      addAction(Constants.Action.MEDIA_UPDATE_PROGRESS)
+      addAction(Constants.Action.MEDIA_GET_CURRENT_STATE)
+    })
+
+    if (mBottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
+      startService(Intent(this, MediaService::class.java).apply {
+        action = Constants.Action.MEDIA_GET_CURRENT_STATE
+      })
+
+    super.onResume()
+  }
+
+  override fun onDestroy() {
+    LocalBroadcastManager.getInstance(this).unregisterReceiver(mMediaControlReceiver)
+    mPresenter.dispose()
+    super.onDestroy()
+  }
+
+  override fun refreshData(data: MutableList<Audio?>) {
+    if (data.isNotEmpty()) {
+      mAdapter.items = data
+    }
+  }
+
+  override fun openMediaActivity(audios: MutableList<Audio>, chosenPosition: Int, isNew: Boolean) {
+    LocalBroadcastManager.getInstance(this).unregisterReceiver(mMediaControlReceiver)
+    startActivity(Intent(this@HomeActivity, MediaActivity::class.java).apply {
+      putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
+      putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
+      putExtra(Constants.Extra.IS_NEW, isNew)
+    })
+  }
+
+  private fun setupToolbar() {
+    setSupportActionBar(mToolbar)
+    supportActionBar?.run {
+      setDisplayShowTitleEnabled(false)
+      setDisplayHomeAsUpEnabled(false)
     }
 
-    private fun setBackground() {
-        mIvBackground.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (Build.VERSION.SDK_INT < 16)
-                    mIvBackground.viewTreeObserver.removeGlobalOnLayoutListener(this)
-                else
-                    mIvBackground.viewTreeObserver.removeOnGlobalLayoutListener(this)
+    mToolbar.setTitleTextColor(getRealColor(R.color.white))
+  }
 
-                val temp = "" + R.drawable.app_background_2
+  private fun setUpRecyclerView() {
+    mRvAudios.layoutManager = LinearLayoutManager(this)
+    mRvAudios.addItemDecoration(LinearItemDecoration(15, 30))
+    mRvAudios.adapter = mAdapter
+  }
 
-                val imageUri = Uri.Builder()
-                        .scheme(UriUtil.LOCAL_RESOURCE_SCHEME)
-                        .path(temp)
-                        .build()
+  private fun setEventListeners() {
+    mAdapter.onMainItemClick = { position ->
+      // Control bottom sheet
+      if (mBottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED ||
+              mBottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
+        mBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+      }
 
-                val imageRequest = ImageRequestBuilder
-                        .newBuilderWithSource(imageUri)
-                        .setResizeOptions(ResizeOptions(mIvBackground.width, mIvBackground.height))
-                        .build()
-
-                mIvBackground.controller = Fresco.newDraweeControllerBuilder()
-                        .setOldController(mIvBackground.controller)
-                        .setImageRequest(imageRequest)
-                        .build()
-            }
-        })
+      // Move to media activity
+      mPresenter.playAudio(position)
     }
+  }
+
+  private fun setBackground() {
+    mIvBackground.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+      override fun onGlobalLayout() {
+        if (Build.VERSION.SDK_INT < 16)
+          mIvBackground.viewTreeObserver.removeGlobalOnLayoutListener(this)
+        else
+          mIvBackground.viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+        val temp = "" + R.drawable.app_background_2
+
+        val imageUri = Uri.Builder()
+                .scheme(UriUtil.LOCAL_RESOURCE_SCHEME)
+                .path(temp)
+                .build()
+
+        val imageRequest = ImageRequestBuilder
+                .newBuilderWithSource(imageUri)
+                .setResizeOptions(ResizeOptions(mIvBackground.width, mIvBackground.height))
+                .build()
+
+        mIvBackground.controller = Fresco.newDraweeControllerBuilder()
+                .setOldController(mIvBackground.controller)
+                .setImageRequest(imageRequest)
+                .build()
+      }
+    })
+  }
 }
