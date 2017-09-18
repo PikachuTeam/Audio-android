@@ -69,27 +69,14 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             mIsPlaying = true
           }
           Constants.Action.MEDIA_PAUSE, Constants.Action.MEDIA_FINISH_PLAYING -> {
-            if (mButtonPlayPause.visibility == View.INVISIBLE) {
-              showLoadingProgress(false)
-            }
             mButtonPlayPause.setImageResource(R.drawable.ic_play)
             mIsPlaying = false
           }
           Constants.Action.MEDIA_NEXT -> {
-            if (!mIsPlaying) {
-              mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-              mIsPlaying = true
-            }
-
-            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
+            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
           }
           Constants.Action.MEDIA_PREVIOUS -> {
-            if (!mIsPlaying) {
-              mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-              mIsPlaying = true
-            }
-
-            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
+            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
           }
           Constants.Action.MEDIA_UPDATE_PROGRESS -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
@@ -107,9 +94,9 @@ class MediaActivity : BaseActivity(), MediaContract.View {
 
             if (isPreparing) {
               mLoadingProgress.visibility = View.VISIBLE
-              mButtonPlayPause.visibility = View.GONE
+              mButtonPlayPause.visibility = View.INVISIBLE
             } else {
-              mLoadingProgress.visibility = View.GONE
+              mLoadingProgress.visibility = View.INVISIBLE
               mButtonPlayPause.visibility = View.VISIBLE
 
               mButtonPlayPause.setImageResource(
@@ -177,6 +164,10 @@ class MediaActivity : BaseActivity(), MediaContract.View {
     setSupportActionBar(mToolbar)
     supportActionBar?.run {
       setDisplayShowTitleEnabled(false)
+    }
+    mToolbar.setNavigationIcon(R.drawable.ic_close)
+    mToolbar.setNavigationOnClickListener {
+      onBackPressed()
     }
   }
 

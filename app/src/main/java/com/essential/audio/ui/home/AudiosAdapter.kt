@@ -28,30 +28,33 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
   }
 
   private val mContext = context
-  private var mFilteredItems: MutableList<Audio?> = ArrayList()
+//  private var mFilteredItems: MutableList<Audio?> = ArrayList()
+//  var filteredItems: MutableList<Audio?> = ArrayList()
+//    get() = mFilteredItems
+//    private set
 
-  var filter = Voice.ALL
-    get() = field
-    set(value) {
-      field = value
-      if (value == Voice.ALL) {
-        mFilteredItems.clear()
-        mFilteredItems.addAll(items)
-        notifyDataSetChanged()
-      } else {
-        mFilteredItems.clear()
-        mFilteredItems.addAll(items.filter {
-          if (it != null) {
-            if (value == Voice.BOY)
-              !it.isGirlVoice
-            else
-              it.isGirlVoice
-          } else
-            false
-        })
-        notifyDataSetChanged()
-      }
-    }
+//  var filter = Voice.ALL
+//    get() = field
+//    set(value) {
+//      field = value
+//      if (value == Voice.ALL) {
+//        mFilteredItems.clear()
+//        mFilteredItems.addAll(items)
+//        notifyDataSetChanged()
+//      } else {
+//        mFilteredItems.clear()
+//        mFilteredItems.addAll(items.filter {
+//          if (it != null) {
+//            if (value == Voice.BOY)
+//              !it.isGirlVoice
+//            else
+//              it.isGirlVoice
+//          } else
+//            false
+//        })
+//        notifyDataSetChanged()
+//      }
+//    }
 
   var onMainItemClick: ((position: Int) -> Unit)? = null
     get() = field
@@ -63,7 +66,7 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
           ItemHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_audio, parent, false))
 
   override fun onBindViewHolder(holder: ItemHolder, position: Int) {
-    val audio = mFilteredItems[position]
+    val audio = items[position]
     audio?.run {
       holder.tvAudioName.text = name
 
@@ -101,7 +104,7 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
   }
 
   override fun getItemCount(): Int {
-    return mFilteredItems.size
+    return items.size
   }
 
   override fun findItem(item: Audio): Int = items.indices.firstOrNull { items[it]?.url.equals(item.url) } ?: -1

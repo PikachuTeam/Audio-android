@@ -34,6 +34,7 @@ dependencies {
 
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
 
+    compile 'com.google.firebase:firebase-config:11.2.2'
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
@@ -48,3 +49,5 @@ dependencies {
 
     compile project(':base_kotlin')
 }
+
+apply plugin: 'com.google.gms.google-services'

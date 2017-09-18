@@ -11,8 +11,10 @@ import selft.yue.basekotlin.common.BasePresenter
  * Created by dongc on 9/1/2017.
  */
 class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), HomeContract.Presenter<V> {
+
   private val mDataSource: AppDataSource = AppRepository()
   private val mAudios: MutableList<Audio?> = ArrayList()
+  private val mFilteredAudios: MutableList<Audio?> = ArrayList()
 
   override fun loadData() {
     view?.run {
@@ -21,6 +23,7 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
         override fun onSuccess(data: MutableList<Audio?>) {
           dismissLoadingDialog()
           mAudios.addAll(data)
+          mFilteredAudios.addAll(data)
           refreshData(data)
         }
 
@@ -33,11 +36,31 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
   }
 
   override fun playAudios(position: Int) {
-    view?.playAudios(mAudios, position)
+    view?.playAudios(mFilteredAudios, position)
   }
 
   override fun updateData(audioJsonString: String) {
     val audio = JsonHelper.instance.fromJson(audioJsonString, Audio::class.java)
     view?.updateUI(audio)
+  }
+
+  override fun filter(voiceType: AudiosAdapter.Voice) {
+    if (voiceType == AudiosAdapter.Voice.ALL) {
+      mFilteredAudios.clear()
+      mFilteredAudios.addAll(mAudios)
+    } else {
+      mFilteredAudios.clear()
+      mFilteredAudios.addAll(mAudios.filter {
+        if (it != null) {
+          if (voiceType == AudiosAdapter.Voice.BOY)
+            !it.isGirlVoice
+          else
+            it.isGirlVoice
+        } else
+          false
+      })
+    }
+
+    view?.filter(mFilteredAudios)
   }
 }

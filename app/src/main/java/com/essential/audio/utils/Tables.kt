@@ -5,19 +5,19 @@ package com.essential.audio.utils
  */
 object Tables {
 
-    object Audio {
-        val NAME = "tbl_audio"
-        val COLUMN_NAME = "name"
-        val COLUMN_FILE = "file"
-        val COLUMN_SPEAKER = "speaker"
-        val COLUMN_COVER = "image_url"
-    }
+  object Audio {
+    val NAME = "tbl_audio"
+    val COLUMN_NAME = "name"
+    val COLUMN_FILE = "audio"
+    val COLUMN_SPEAKER = "speaker"
+    val COLUMN_COVER = "image"
+  }
 
-    object TdAudio{
-        val NAME = "tbl_tdaudio"
-        val COLUMN_NAME = "name"
-        val COLUMN_FILE = "audio"
-        val COLUMN_SPEAKER = "speaker"
-        val COLUMN_COVER = "image"
-    }
+  object TdAudio {
+    val NAME = "tbl_tdaudio"
+    val COLUMN_NAME = "name"
+    val COLUMN_FILE = "audio"
+    val COLUMN_SPEAKER = "speaker"
+    val COLUMN_COVER = "image"
+  }
 }

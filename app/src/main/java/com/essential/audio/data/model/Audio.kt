@@ -9,4 +9,10 @@ class Audio(var name: String, var url: String, var isGirlVoice: Boolean, var cov
     set(value) {
       field = value
     }
+
+  override fun equals(other: Any?): Boolean {
+    if (other !is Audio)
+      return false
+    return name == other.name && url == other.url && isGirlVoice == other.isGirlVoice && cover == other.cover
+  }
 }

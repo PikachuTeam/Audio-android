@@ -7,10 +7,12 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.view.ViewTreeObserver
+import android.widget.Toast
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
 import com.essential.audio.service.MediaService
@@ -30,7 +32,6 @@ import selft.yue.basekotlin.extension.getRealColor
  * Created by dongc on 9/1/2017.
  */
 class HomeActivity : BaseActivity(), HomeContract.View {
-
   private val mPresenter: HomeContract.Presenter<HomeContract.View> = HomePresenter(this)
 
   private val mRvAudios by lazy { rv_audios }
@@ -43,6 +44,8 @@ class HomeActivity : BaseActivity(), HomeContract.View {
   private var mCurrentPosition = -1
 
   private val mAdapter: AudiosAdapter = AudiosAdapter(this)
+
+  private var mCanExit = false
 
   private val mMediaControlReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -62,18 +65,10 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             mBottomSheetMediaPlayer.isPlaying = false
           }
           Constants.Action.MEDIA_NEXT -> {
-            if (!mBottomSheetMediaPlayer.isPlaying) {
-              mBottomSheetMediaPlayer.isPlaying = true
-            }
-
-            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
+            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
           }
           Constants.Action.MEDIA_PREVIOUS -> {
-            if (!mBottomSheetMediaPlayer.isPlaying) {
-              mBottomSheetMediaPlayer.isPlaying = true
-            }
-
-            mPresenter.updateData(getStringExtra(Constants.Extra.CURRENT_AUDIO))
+            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
           }
           Constants.Action.MEDIA_UPDATE_PROGRESS -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
@@ -140,15 +135,29 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     super.onDestroy()
   }
 
+  override fun onBackPressed() {
+    if (mCanExit) {
+      stopService(Intent(this, MediaService::class.java))
+      finish()
+    } else {
+      mCanExit = true
+      showToast(R.string.press_again_to_exit)
+      Handler().postDelayed({
+        mCanExit = false
+      }, 3000L)
+    }
+  }
+
   override fun refreshData(data: MutableList<Audio?>) {
     if (data.isNotEmpty()) {
       mAdapter.items = data
       if (!mCbBoyVoice.isChecked && !mCbGirlVoice.isChecked) {
-        mAdapter.filter = AudiosAdapter.Voice.ALL
+        mPresenter.filter(AudiosAdapter.Voice.ALL)
       } else {
-        mAdapter.filter =
+        mPresenter.filter(
                 if (mCbBoyVoice.isChecked) AudiosAdapter.Voice.BOY
                 else AudiosAdapter.Voice.GIRL
+        )
       }
     }
   }
@@ -170,6 +179,10 @@ class HomeActivity : BaseActivity(), HomeContract.View {
 
   override fun updateUI(audio: Audio) {
     mBottomSheetMediaPlayer.setAudioName(audio.name)
+  }
+
+  override fun filter(filteredAudios: MutableList<Audio?>) {
+    mAdapter.items = filteredAudios
   }
 
   private fun setupToolbar() {
@@ -201,33 +214,35 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     mCbGirlVoice.setOnCheckedChangeListener { _, isChecked ->
       if (isChecked) {
         if (mCbBoyVoice.isChecked) {
-          mAdapter.filter = AudiosAdapter.Voice.ALL
+          mPresenter.filter(AudiosAdapter.Voice.ALL)
         } else {
-          mAdapter.filter = AudiosAdapter.Voice.GIRL
+          mPresenter.filter(AudiosAdapter.Voice.GIRL)
         }
       } else {
         if (!mCbBoyVoice.isChecked) {
-          mAdapter.filter = AudiosAdapter.Voice.ALL
+          mPresenter.filter(AudiosAdapter.Voice.ALL)
         } else {
-          mAdapter.filter = AudiosAdapter.Voice.BOY
+          mPresenter.filter(AudiosAdapter.Voice.BOY)
         }
       }
+      updateAudiosList()
     }
 
     mCbBoyVoice.setOnCheckedChangeListener { _, isChecked ->
       if (isChecked) {
         if (mCbGirlVoice.isChecked) {
-          mAdapter.filter = AudiosAdapter.Voice.ALL
+          mPresenter.filter(AudiosAdapter.Voice.ALL)
         } else {
-          mAdapter.filter = AudiosAdapter.Voice.BOY
+          mPresenter.filter(AudiosAdapter.Voice.BOY)
         }
       } else {
         if (!mCbGirlVoice.isChecked) {
-          mAdapter.filter = AudiosAdapter.Voice.ALL
+          mPresenter.filter(AudiosAdapter.Voice.ALL)
         } else {
-          mAdapter.filter = AudiosAdapter.Voice.GIRL
+          mPresenter.filter(AudiosAdapter.Voice.GIRL)
         }
       }
+      updateAudiosList()
     }
 
     mBottomSheetMediaPlayer.onFunctionClickListener = { view ->
@@ -278,6 +293,13 @@ class HomeActivity : BaseActivity(), HomeContract.View {
   private fun startMediaService(action: String) {
     startService(Intent(this, MediaService::class.java).apply {
       this.action = action
+    })
+  }
+
+  private fun updateAudiosList() {
+    startService(Intent(this@HomeActivity, MediaService::class.java).apply {
+      action = Constants.Action.MEDIA_UPDATE_LIST
+      putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(mAdapter.items))
     })
   }
 }

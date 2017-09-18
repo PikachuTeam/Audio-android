@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "274290109711",
+    "firebase_url": "https://tdaudio-83cda.firebaseio.com",
+    "project_id": "tdaudio-83cda",
+    "storage_bucket": "tdaudio-83cda.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:274290109711:android:c75605c39e37b3a6",
+        "android_client_info": {
+          "package_name": "com.essential.audio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "274290109711-fkk8ebn2n5rk91r81fkv9pp0h9til952.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCit7_fIKfhnFsyzMdYlN0gPKNxOwkG3CQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

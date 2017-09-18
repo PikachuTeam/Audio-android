@@ -30,9 +30,7 @@ class MediaService : Service() {
   private var mTimeHandler: Handler? = Handler()
   private val mUpdateTimeTask: Runnable = object : Runnable {
     override fun run() {
-      Log.e(TAG, "Dau ma")
       if (mMediaController.isPlaying()) {
-        Log.e(TAG, "Dau phong")
         LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_UPDATE_PROGRESS).apply {
           putExtra(Constants.Extra.PROGRESS, mMediaController.player.currentPosition)
           putExtra(Constants.Extra.DURATION, mMediaController.player.duration)
@@ -69,14 +67,13 @@ class MediaService : Service() {
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     intent?.run {
-      when (intent.action) {
+      when (action) {
         Constants.Action.MEDIA_START -> {
-          val chosenAudio = intent.getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
+          val chosenAudio = getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
           mPaused = false
-          if (mMediaController.currentPosition == -1 ||
-                  mMediaController.currentPosition != chosenAudio) {
+          if (!mMediaController.isPlaying(chosenAudio)) {
             mMediaController.audios = JsonHelper.instance.fromJson(
-                    intent.getStringExtra(Constants.Extra.AUDIOS),
+                    getStringExtra(Constants.Extra.AUDIOS),
                     genericType<MutableList<Audio>>())
             mMediaController.currentPosition = chosenAudio
 
@@ -92,7 +89,7 @@ class MediaService : Service() {
           }
         }
         Constants.Action.MEDIA_SEEK_TO -> {
-          mMediaController.seekTo(intent.getIntExtra(Constants.Extra.PROGRESS, 0))
+          mMediaController.seekTo(getIntExtra(Constants.Extra.PROGRESS, 0))
         }
         Constants.Action.MEDIA_GET_CURRENT_STATE -> {
           LocalBroadcastManager.getInstance(this@MediaService)
@@ -116,13 +113,10 @@ class MediaService : Service() {
                     )
                   })
         }
-        Constants.Action.MEDIA_START_UPDATE_PROGRESS -> {
-          mIsUpdatingProgress = true
-          mTimeHandler?.post(mUpdateTimeTask)
-        }
-        Constants.Action.MEDIA_STOP_UPDATE_PROGRESS -> {
-          mIsUpdatingProgress = false
-          mTimeHandler?.removeCallbacks(mUpdateTimeTask)
+        Constants.Action.MEDIA_UPDATE_LIST -> {
+          mMediaController.audios = JsonHelper.instance.fromJson(
+                  getStringExtra(Constants.Extra.AUDIOS),
+                  genericType<MutableList<Audio>>())
         }
         else -> executeWork(intent)
       }
@@ -132,6 +126,7 @@ class MediaService : Service() {
 
   override fun onDestroy() {
     unregisterReceiver(mMediaControlReceiver)
+    mMediaController.dispose()
     mMediaController.removeOnPreparedListener()
     mNotificationHelper.deleteNotification()
     mTimeHandler?.removeCallbacks(mUpdateTimeTask)

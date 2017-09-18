@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import com.essential.audio.data.model.Audio
 
 /**
@@ -38,7 +39,12 @@ class MediaController {
     get() = field
     set(value) {
       field = value
+      currentPosition =
+              if (mCurrentAudio == null) -1
+              else value.indices.firstOrNull { value[it].equals(mCurrentAudio) } ?: -1
     }
+
+  private var mCurrentAudio: Audio? = null
 
   // Constructor
   init {
@@ -52,19 +58,24 @@ class MediaController {
     }
 
     player.setOnCompletionListener {
-      currentPosition++
-      if (currentPosition >= audios.size) {
-        currentPosition = audios.size - 1
-        pause()
-        mOnMediaStateListener?.onFinishPlaying()
-      } else {
-        mOnMediaStateListener?.onAudioCompleted()
-        prepare(audios[currentPosition])
-      }
+      mOnMediaStateListener?.onFinishPlaying()
+//      currentPosition++
+//      if (currentPosition >= audios.size) {
+//        currentPosition = audios.size - 1
+//        pause()
+//        mOnMediaStateListener?.onFinishPlaying()
+//      } else {
+//        mOnMediaStateListener?.onAudioCompleted()
+//        prepare(audios[currentPosition])
+//      }
     }
 
     player.reset()
   }
+
+  fun isPlaying(position: Int): Boolean =
+          if (audios.size > 0) audios[position].equals(mCurrentAudio)
+          else false
 
   // Functions
   fun setOnMediaPlayerStateListener(onMediaStateListener: OnMediaStateListener?) {
@@ -73,7 +84,8 @@ class MediaController {
 
   fun start() {
     stop()
-    prepare(audios[currentPosition])
+    mCurrentAudio = audios[currentPosition]
+    prepare(mCurrentAudio!!)
   }
 
   fun play() {
@@ -97,8 +109,7 @@ class MediaController {
     if (currentPosition >= audios.size) {
       currentPosition = 0
     }
-    stop()
-    prepare(audios[currentPosition])
+    start()
   }
 
   fun previous() {
@@ -106,8 +117,7 @@ class MediaController {
     if (currentPosition < 0) {
       currentPosition = audios.size - 1
     }
-    stop()
-    prepare(audios[currentPosition])
+    start()
   }
 
   fun isPlaying(): Boolean = player.isPlaying
@@ -124,7 +134,7 @@ class MediaController {
     player.setOnPreparedListener(null)
   }
 
-  fun getCurrentAudio(): Audio = audios[currentPosition]
+  fun getCurrentAudio(): Audio = mCurrentAudio!!
 
   fun setOnBufferingUpdateListener(onBufferingUpdateListener: MediaPlayer.OnBufferingUpdateListener) {
     player.setOnBufferingUpdateListener(onBufferingUpdateListener)
