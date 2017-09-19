@@ -4,6 +4,11 @@ package com.essential.audio.utils
  * Created by dongc on 8/31/2017.
  */
 object Constants {
+  val APP_SHARED_PREFERENCES = Constants::class.java.`package`.name
+
+  object Pref {
+    val CURRENT_BACKGROUND_POSITION = "CURRENT_BACKGROUND_POSITION"
+  }
 
   object Extra {
     val AUDIOS = "AUDIOS"

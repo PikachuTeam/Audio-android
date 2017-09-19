@@ -76,6 +76,8 @@ class SplashActivity : BaseActivity() {
 
     setBackground()
 
+    BackgroundController.instance.init(this)
+
     fetchFirebaseConfig()
   }
 

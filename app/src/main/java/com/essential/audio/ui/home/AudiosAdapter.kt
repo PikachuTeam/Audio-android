@@ -28,33 +28,6 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
   }
 
   private val mContext = context
-//  private var mFilteredItems: MutableList<Audio?> = ArrayList()
-//  var filteredItems: MutableList<Audio?> = ArrayList()
-//    get() = mFilteredItems
-//    private set
-
-//  var filter = Voice.ALL
-//    get() = field
-//    set(value) {
-//      field = value
-//      if (value == Voice.ALL) {
-//        mFilteredItems.clear()
-//        mFilteredItems.addAll(items)
-//        notifyDataSetChanged()
-//      } else {
-//        mFilteredItems.clear()
-//        mFilteredItems.addAll(items.filter {
-//          if (it != null) {
-//            if (value == Voice.BOY)
-//              !it.isGirlVoice
-//            else
-//              it.isGirlVoice
-//          } else
-//            false
-//        })
-//        notifyDataSetChanged()
-//      }
-//    }
 
   var onMainItemClick: ((position: Int) -> Unit)? = null
     get() = field
@@ -85,7 +58,7 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
           else
             holder.ivCover.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-          val imageUri = Uri.parse(this@run.cover)
+          val imageUri = Uri.parse(this@run.cover.trim())
 
           val imageRequest = ImageRequestBuilder
                   .newBuilderWithSource(imageUri)

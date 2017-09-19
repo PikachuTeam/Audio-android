@@ -59,15 +59,6 @@ class MediaController {
 
     player.setOnCompletionListener {
       mOnMediaStateListener?.onFinishPlaying()
-//      currentPosition++
-//      if (currentPosition >= audios.size) {
-//        currentPosition = audios.size - 1
-//        pause()
-//        mOnMediaStateListener?.onFinishPlaying()
-//      } else {
-//        mOnMediaStateListener?.onAudioCompleted()
-//        prepare(audios[currentPosition])
-//      }
     }
 
     player.reset()

@@ -25,7 +25,6 @@ class MediaService : Service() {
   private lateinit var mMediaController: MediaController
 
   private var mPaused: Boolean = false
-  private var mIsUpdatingProgress = false
 
   private var mTimeHandler: Handler? = Handler()
   private val mUpdateTimeTask: Runnable = object : Runnable {
@@ -70,8 +69,8 @@ class MediaService : Service() {
       when (action) {
         Constants.Action.MEDIA_START -> {
           val chosenAudio = getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
-          mPaused = false
           if (!mMediaController.isPlaying(chosenAudio)) {
+            mPaused = false
             mMediaController.audios = JsonHelper.instance.fromJson(
                     getStringExtra(Constants.Extra.AUDIOS),
                     genericType<MutableList<Audio>>())
@@ -85,6 +84,10 @@ class MediaService : Service() {
 
             mNotificationHelper.createNotification(mMediaController.getCurrentAudio(), false, true, true)
           } else {
+            if (mPaused) {
+              mPaused = false
+              mTimeHandler?.post(mUpdateTimeTask)
+            }
             mMediaController.play()
           }
         }
@@ -105,7 +108,7 @@ class MediaService : Service() {
                     )
                     putExtra(
                             Constants.Extra.DURATION,
-                            mMediaController.player.duration
+                            if (mMediaController.isPreparing) 0 else mMediaController.player.duration
                     )
                     putExtra(
                             Constants.Extra.IS_PREPARING,
@@ -137,7 +140,7 @@ class MediaService : Service() {
     var isPlaying = true
     var onGoing = true
     intent?.run {
-      when (intent.action) {
+      when (action) {
         Constants.Action.MEDIA_PLAY -> {
           LocalBroadcastManager.getInstance(this@MediaService)
                   .sendBroadcast(Intent(Constants.Action.MEDIA_PLAY))
@@ -181,6 +184,7 @@ class MediaService : Service() {
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
           mMediaController.pause()
+
           isPlaying = false
           onGoing = false
           mPaused = true
@@ -225,11 +229,13 @@ class MediaService : Service() {
                 false
         )
         mTimeHandler?.removeCallbacks(mUpdateTimeTask)
+        mPaused = true
         LocalBroadcastManager.getInstance(this@MediaService)
                 .sendBroadcast(Intent(Constants.Action.MEDIA_FINISH_PLAYING))
       }
 
       override fun onAudioCompleted() {
+        mPaused = true
         LocalBroadcastManager.getInstance(this@MediaService)
                 .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_COMPLETED))
       }
