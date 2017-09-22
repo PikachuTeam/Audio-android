@@ -9,4 +9,8 @@
     <string name="fail_to_fetch_config">Không thể tải dữ liệu.</string>
     <string name="network_error">Lỗi mạng.</string>
     <string name="press_again_to_exit">Ấn lần nữa để thoát</string>
+
+    <string name="locked_item">Bài này đang bị khóa! Xem video để quảng cáo?</string>
+    <string name="watch_to_unlock">Xem</string>
+    <string name="cancel">Đéo xem</string>
 </resources>

@@ -27,6 +27,7 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
   }
 
   private val mContext = context
+  private var mCurrentAudio: Audio? = null
 
   var onMainItemClick: ((position: Int) -> Unit)? = null
     get() = field
@@ -83,6 +84,10 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
   }
 
   override fun findItem(item: Audio): Int = items.indices.firstOrNull { items[it]?.url.equals(item.url) } ?: -1
+
+  fun updateCurrentAudio(audio: Audio) {
+
+  }
 
   class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
     val tvAudioName = view.findViewById<TextView>(R.id.tv_title)

@@ -11,6 +11,7 @@ import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import com.essential.audio.data.model.Audio
 import com.essential.audio.utils.*
+import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 /**
@@ -114,15 +115,22 @@ class MediaService : Service() {
                             mMediaController.isPreparing
                     )
                     putExtra(
-                            Constants.Extra.CURRENT_POSITION,
-                            mMediaController.currentPosition
+                            Constants.Extra.CURRENT_AUDIO,
+                            JsonHelper.instance.toJson(mMediaController.getCurrentAudio())
                     )
                   })
         }
         Constants.Action.MEDIA_UPDATE_LIST -> {
-          mMediaController.audios = JsonHelper.instance.fromJson(
-                  getStringExtra(Constants.Extra.AUDIOS),
-                  genericType<MutableList<Audio>>())
+          if (getBooleanExtra(Constants.Extra.UPDATE_CONTROLLER, false)) {
+            mMediaController.audios = JsonHelper.instance.fromJson(
+                    getStringExtra(Constants.Extra.AUDIOS),
+                    genericType<MutableList<Audio>>())
+          } else {
+            LocalBroadcastManager.getInstance(this@MediaService)
+                    .sendBroadcast(Intent(Constants.Action.MEDIA_UPDATE_LIST).apply {
+                      putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(mMediaController.audios))
+                    })
+          }
         }
         else -> executeWork(intent)
       }

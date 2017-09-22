@@ -22,6 +22,7 @@ import com.facebook.common.util.UriUtil
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.common.ResizeOptions
 import com.facebook.imagepipeline.request.ImageRequestBuilder
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
@@ -83,24 +84,24 @@ class HomeActivity : BaseActivity(), HomeContract.View {
           Constants.Action.MEDIA_GET_CURRENT_STATE -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
             val progress = getIntExtra(Constants.Extra.PROGRESS, 0)
-            val audioName = getStringExtra(Constants.Extra.AUDIO_NAME)
             val isPreparing = getBooleanExtra(Constants.Extra.IS_PREPARING, false)
-            val currentPosition = getIntExtra(Constants.Extra.CURRENT_POSITION, -1)
+            val currentAudio = Gson().fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
 
-            if (mCurrentPosition == -1) {
-              mCurrentPosition = currentPosition
-              mAdapter.items[mCurrentPosition]?.playing = true
-              mAdapter.notifyItemChanged(mCurrentPosition)
-            } else if (mCurrentPosition != currentPosition) {
-              mAdapter.items[mCurrentPosition]?.playing = false
-              mAdapter.notifyItemChanged(mCurrentPosition)
 
-              mCurrentPosition = currentPosition
-              mAdapter.items[mCurrentPosition]?.playing = true
-              mAdapter.notifyItemChanged(mCurrentPosition)
-            }
+//            if (mCurrentPosition == -1) {
+//              mCurrentPosition = currentPosition
+//              mAdapter.items[mCurrentPosition]?.playing = true
+//              mAdapter.notifyItemChanged(mCurrentPosition)
+//            } else if (mCurrentPosition != currentPosition) {
+//              mAdapter.items[mCurrentPosition]?.playing = false
+//              mAdapter.notifyItemChanged(mCurrentPosition)
+//
+//              mCurrentPosition = currentPosition
+//              mAdapter.items[mCurrentPosition]?.playing = true
+//              mAdapter.notifyItemChanged(mCurrentPosition)
+//            }
 
-            mBottomSheetMediaPlayer.setAudioName(audioName)
+            mBottomSheetMediaPlayer.setAudioName(currentAudio.name)
             mBottomSheetMediaPlayer.isPlaying = getBooleanExtra(Constants.Extra.IS_PLAYING, false)
             mBottomSheetMediaPlayer.setMax(duration)
             mBottomSheetMediaPlayer.setProgress(progress)
@@ -221,20 +222,20 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       if (mBottomSheetMediaPlayer.visibility == View.GONE)
         mBottomSheetMediaPlayer.visibility = View.VISIBLE
 
-      if (mCurrentPosition == -1) {
-        mCurrentPosition = position
-        mAdapter.items[mCurrentPosition]?.playing = true
-        mAdapter.notifyItemChanged(mCurrentPosition)
-      } else {
-        if (mCurrentPosition != position) {
-          mAdapter.items[mCurrentPosition]?.playing = false
-          mAdapter.notifyItemChanged(mCurrentPosition)
-
-          mCurrentPosition = position
-          mAdapter.items[mCurrentPosition]?.playing = true
-          mAdapter.notifyItemChanged(mCurrentPosition)
-        }
-      }
+//      if (mCurrentPosition == -1) {
+//        mCurrentPosition = position
+//        mAdapter.items[mCurrentPosition]?.playing = true
+//        mAdapter.notifyItemChanged(mCurrentPosition)
+//      } else {
+//        if (mCurrentPosition != position) {
+//          mAdapter.items[mCurrentPosition]?.playing = false
+//          mAdapter.notifyItemChanged(mCurrentPosition)
+//
+//          mCurrentPosition = position
+//          mAdapter.items[mCurrentPosition]?.playing = true
+//          mAdapter.notifyItemChanged(mCurrentPosition)
+//        }
+//      }
       // Move to media activity
       mPresenter.playAudios(position)
     }

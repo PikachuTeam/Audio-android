@@ -20,6 +20,7 @@ object Constants {
     val IS_PREPARING = "IS_PREPARING"
     val CURRENT_AUDIO = "CURRENT_AUDIO"
     val CURRENT_POSITION = "CURRENT_POSITION"
+    val UPDATE_CONTROLLER = "UPDATE_CONTROLLER"
   }
 
   object Action {

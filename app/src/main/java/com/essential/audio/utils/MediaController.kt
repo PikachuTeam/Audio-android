@@ -4,7 +4,6 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
-import android.util.Log
 import com.essential.audio.data.model.Audio
 
 /**
@@ -76,16 +75,20 @@ class MediaController {
   fun start() {
     stop()
     mCurrentAudio = audios[currentPosition]
+    mCurrentAudio?.playing = true
     prepare(mCurrentAudio!!)
   }
 
   fun play() {
+    mCurrentAudio?.playing = true
     player.start()
   }
 
   fun pause() {
-    if (player.isPlaying)
+    if (player.isPlaying) {
       player.pause()
+      mCurrentAudio?.playing = false
+    }
   }
 
   fun stop() {
@@ -100,6 +103,7 @@ class MediaController {
     if (currentPosition >= audios.size) {
       currentPosition = 0
     }
+    mCurrentAudio?.playing = false
     start()
   }
 
@@ -108,6 +112,7 @@ class MediaController {
     if (currentPosition < 0) {
       currentPosition = audios.size - 1
     }
+    mCurrentAudio?.playing = false
     start()
   }
 
