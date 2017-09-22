@@ -15,4 +15,9 @@ class Audio(var name: String, var url: String, var isGirlVoice: Boolean, var cov
       return false
     return name == other.name && url == other.url && isGirlVoice == other.isGirlVoice && cover == other.cover
   }
+
+  fun copyState(other: Audio) {
+    playing = other.playing
+    locked = other.locked
+  }
 }

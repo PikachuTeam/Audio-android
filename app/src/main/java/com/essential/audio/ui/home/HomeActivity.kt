@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
 import com.essential.audio.R
@@ -40,8 +41,6 @@ class HomeActivity : BaseActivity(), HomeContract.View {
   private val mIvBackground by lazy { iv_background }
   private val mCbBoyVoice by lazy { cb_boy_voice }
   private val mCbGirlVoice by lazy { cb_girl_voice }
-
-  private var mCurrentPosition = -1
 
   private val mAdapter: AudiosAdapter = AudiosAdapter(this)
 
@@ -87,24 +86,17 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             val isPreparing = getBooleanExtra(Constants.Extra.IS_PREPARING, false)
             val currentAudio = Gson().fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
 
-
-//            if (mCurrentPosition == -1) {
-//              mCurrentPosition = currentPosition
-//              mAdapter.items[mCurrentPosition]?.playing = true
-//              mAdapter.notifyItemChanged(mCurrentPosition)
-//            } else if (mCurrentPosition != currentPosition) {
-//              mAdapter.items[mCurrentPosition]?.playing = false
-//              mAdapter.notifyItemChanged(mCurrentPosition)
-//
-//              mCurrentPosition = currentPosition
-//              mAdapter.items[mCurrentPosition]?.playing = true
-//              mAdapter.notifyItemChanged(mCurrentPosition)
-//            }
-
             mBottomSheetMediaPlayer.setAudioName(currentAudio.name)
-            mBottomSheetMediaPlayer.isPlaying = getBooleanExtra(Constants.Extra.IS_PLAYING, false)
+            mBottomSheetMediaPlayer.isPlaying = currentAudio.playing
             mBottomSheetMediaPlayer.setMax(duration)
             mBottomSheetMediaPlayer.setProgress(progress)
+
+            mPresenter.updateAudio(currentAudio)
+          }
+          Constants.Action.MEDIA_AUDIO_STATE_CHANGED -> {
+            Log.e("HomeActivity", "Audio change state")
+            val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+//            mPresenter.updateAudio(audio)
           }
         }
       }
@@ -135,6 +127,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       addAction(Constants.Action.MEDIA_FINISH_PLAYING)
       addAction(Constants.Action.MEDIA_UPDATE_PROGRESS)
       addAction(Constants.Action.MEDIA_GET_CURRENT_STATE)
+      addAction(Constants.Action.MEDIA_AUDIO_STATE_CHANGED)
     })
 
     if (mBottomSheetMediaPlayer.visibility == View.VISIBLE)
@@ -200,6 +193,11 @@ class HomeActivity : BaseActivity(), HomeContract.View {
   override fun filter(filteredAudios: MutableList<Audio?>) {
     mAdapter.items = filteredAudios
   }
+
+  override fun updateAdapter(position: Int) {
+    mAdapter.notifyItemChanged(position)
+  }
+
 
   private fun setupToolbar() {
     setSupportActionBar(mToolbar)
@@ -328,6 +326,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
   private fun updateAudiosList() {
     startService(Intent(this@HomeActivity, MediaService::class.java).apply {
       action = Constants.Action.MEDIA_UPDATE_LIST
+      putExtra(Constants.Extra.UPDATE_CONTROLLER, true)
       putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(mAdapter.items))
     })
   }

@@ -9,6 +9,7 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
+import android.util.Log
 import com.essential.audio.data.model.Audio
 import com.essential.audio.utils.*
 import com.google.gson.Gson
@@ -98,10 +99,6 @@ class MediaService : Service() {
           LocalBroadcastManager.getInstance(this@MediaService)
                   .sendBroadcast(Intent(Constants.Action.MEDIA_GET_CURRENT_STATE).apply {
                     putExtra(Constants.Extra.IS_PLAYING, mMediaController.isPlaying())
-                    putExtra(
-                            Constants.Extra.AUDIO_NAME,
-                            mMediaController.getCurrentAudio().name
-                    )
                     putExtra(
                             Constants.Extra.PROGRESS,
                             mMediaController.player.currentPosition
@@ -251,6 +248,13 @@ class MediaService : Service() {
                 .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_COMPLETED))
       }
     })
+
+    mMediaController.onAudioStateChanged = { audio ->
+      Log.e("MediaService", "Aloha")
+      LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
+        putExtra(Constants.Extra.CURRENT_AUDIO, JsonHelper.instance.toJson(audio))
+      })
+    }
   }
 
   private inline fun <reified T> genericType() = object : TypeToken<T>() {}.type

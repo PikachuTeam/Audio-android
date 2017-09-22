@@ -16,6 +16,8 @@ interface HomeContract {
     fun updateUI(audio: Audio)
 
     fun filter(filteredAudios: MutableList<Audio?>)
+
+    fun updateAdapter(position: Int)
   }
 
   interface Presenter<V : View> : BaseContract.Presenter<V> {
@@ -29,5 +31,7 @@ interface HomeContract {
     fun updateData(audioJsonString: String)
 
     fun filter(voiceType: AudiosAdapter.Voice)
+
+    fun updateAudio(audio: Audio)
   }
 }

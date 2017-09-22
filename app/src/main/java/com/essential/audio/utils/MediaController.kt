@@ -45,6 +45,8 @@ class MediaController {
 
   private var mCurrentAudio: Audio? = null
 
+  var onAudioStateChanged: ((audio: Audio) -> Unit)? = null
+
   // Constructor
   init {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -57,6 +59,12 @@ class MediaController {
     }
 
     player.setOnCompletionListener {
+      // Notify previous audio state changed
+      mCurrentAudio?.let {
+        it.playing = false
+        onAudioStateChanged?.invoke(it)
+      }
+
       mOnMediaStateListener?.onFinishPlaying()
     }
 
@@ -80,20 +88,36 @@ class MediaController {
   }
 
   fun play() {
-    mCurrentAudio?.playing = true
+    // Notify current audio state changed
+    mCurrentAudio?.let {
+      it.playing = true
+      onAudioStateChanged?.invoke(it)
+    }
+
     player.start()
   }
 
   fun pause() {
     if (player.isPlaying) {
       player.pause()
-      mCurrentAudio?.playing = false
+
+      // Notify previous audio state changed
+      mCurrentAudio?.let {
+        it.playing = false
+        onAudioStateChanged?.invoke(it)
+      }
     }
   }
 
   fun stop() {
     if (player.isPlaying) {
       player.stop()
+
+      // Notify previous audio state changed
+      mCurrentAudio?.let {
+        it.playing = false
+        onAudioStateChanged?.invoke(it)
+      }
     }
     player.reset()
   }
@@ -103,7 +127,7 @@ class MediaController {
     if (currentPosition >= audios.size) {
       currentPosition = 0
     }
-    mCurrentAudio?.playing = false
+
     start()
   }
 
@@ -112,7 +136,7 @@ class MediaController {
     if (currentPosition < 0) {
       currentPosition = audios.size - 1
     }
-    mCurrentAudio?.playing = false
+
     start()
   }
 
@@ -150,5 +174,8 @@ class MediaController {
     player.setDataSource(audio.url)
     player.prepareAsync()
     isPreparing = true
+    mCurrentAudio?.let {
+      onAudioStateChanged?.invoke(it)
+    }
   }
 }

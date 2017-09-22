@@ -20,6 +20,7 @@ import com.essential.audio.data.model.Audio
 import com.essential.audio.service.MediaService
 import com.essential.audio.utils.BackgroundController
 import com.essential.audio.utils.Constants
+import com.essential.audio.utils.JsonHelper
 import com.essential.audio.widget.DateTimeUtils
 import kotlinx.android.synthetic.main.activity_media.*
 import selft.yue.basekotlin.activity.BaseActivity
@@ -80,9 +81,10 @@ class MediaActivity : BaseActivity(), MediaContract.View {
           Constants.Action.MEDIA_GET_CURRENT_STATE -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
             val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
-            val audioName = getStringExtra(Constants.Extra.AUDIO_NAME)
             val isPreparing = getBooleanExtra(Constants.Extra.IS_PREPARING, false)
-            mIsPlaying = getBooleanExtra(Constants.Extra.IS_PLAYING, false)
+            val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+
+            mIsPlaying = audio.playing
 
             if (isPreparing) {
               mLoadingProgress.visibility = View.VISIBLE
@@ -100,7 +102,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             if (mSeekBar.max != duration)
               mSeekBar.max = duration
             updateProgress(currentPosition, duration)
-            mTvTitle.text = audioName
+            mTvTitle.text = audio.name
           }
         }
       }
