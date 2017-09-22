@@ -7,10 +7,11 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.CountDownTimer
-import android.util.Log
-import android.view.View
+import android.support.v4.content.ContextCompat
 import android.view.ViewTreeObserver
+import com.essential.audio.R
 import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.drawee.drawable.ScalingUtils
 import com.facebook.drawee.view.SimpleDraweeView
 import com.facebook.imagepipeline.common.ResizeOptions
 import com.facebook.imagepipeline.request.ImageRequestBuilder
@@ -28,6 +29,7 @@ class BackgroundController private constructor() {
   private lateinit var mIvBackground2: SimpleDraweeView
 
   private lateinit var mSharedPref: SharedPreferences
+  private lateinit var mContext: Context
 
   private var mCurrentPosition = -1
   private var mWidth = 0
@@ -56,6 +58,7 @@ class BackgroundController private constructor() {
   }
 
   fun init(context: Context) {
+    mContext = context
     mSharedPref = context.getSharedPreferences(Constants.APP_SHARED_PREFERENCES, Context.MODE_PRIVATE)
     mCurrentPosition = if (mSharedPref.contains(Constants.Pref.CURRENT_BACKGROUND_POSITION)) {
       mSharedPref.getInt(Constants.Pref.CURRENT_BACKGROUND_POSITION, -1)
@@ -84,6 +87,16 @@ class BackgroundController private constructor() {
 
     mIvBackground1 = ivBackground1
     mIvBackground2 = ivBackground2
+
+    mIvBackground1.hierarchy.setPlaceholderImage(
+            ContextCompat.getDrawable(mContext, R.drawable.app_background_2),
+            ScalingUtils.ScaleType.CENTER_CROP
+    )
+    mIvBackground2.hierarchy.setPlaceholderImage(
+            ContextCompat.getDrawable(mContext, R.drawable.app_background_2),
+            ScalingUtils.ScaleType.CENTER_CROP
+    )
+
     if (mIvBackground2.width == 0) {
       mIvBackground2.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
         override fun onGlobalLayout() {

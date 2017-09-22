@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    app:cardBackgroundColor="@color/item_audio_color"
-    app:cardCornerRadius="10dp">
+                                    xmlns:app="http://schemas.android.com/apk/res-auto"
+                                    xmlns:tools="http://schemas.android.com/tools"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:cardBackgroundColor="@color/item_audio_color"
+                                    app:cardCornerRadius="10dp">
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/item_container"
@@ -22,7 +22,25 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:placeholderImage="@drawable/ic_picture"
-            app:roundedCornerRadius="10dp" />
+            app:roundedCornerRadius="10dp"/>
+
+        <FrameLayout
+            android:id="@+id/state_area"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_playing"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/iv_cover"
+            app:layout_constraintLeft_toLeftOf="@id/iv_cover"
+            app:layout_constraintRight_toRightOf="@id/iv_cover"
+            app:layout_constraintTop_toTopOf="@id/iv_cover">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_playing"/>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tv_title"
@@ -40,7 +58,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@id/iv_cover"
             tools:layout_editor_absoluteY="45dp"
-            tools:text="Co gai ngay hom qua" />
+            tools:text="Co gai ngay hom qua"/>
 
         <ImageView
             android:id="@+id/iv_gender"
@@ -51,7 +69,7 @@
             android:layout_marginTop="10dp"
             android:src="@drawable/ic_girl_underwear"
             app:layout_constraintLeft_toRightOf="@id/iv_cover"
-            app:layout_constraintTop_toBottomOf="@id/tv_title" />
+            app:layout_constraintTop_toBottomOf="@id/tv_title"/>
 
         <TextView
             android:id="@+id/tv_gender"
@@ -63,6 +81,18 @@
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="@id/iv_gender"
             app:layout_constraintLeft_toRightOf="@id/iv_gender"
-            app:layout_constraintTop_toTopOf="@id/iv_gender" />
+            app:layout_constraintTop_toTopOf="@id/iv_gender"/>
+
+        <ImageView
+            android:id="@+id/iv_locked"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_lock"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/iv_gender"
+            app:layout_constraintHorizontal_bias="0.95"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/iv_gender"/>
     </android.support.constraint.ConstraintLayout>
 </android.support.v7.widget.CardView>

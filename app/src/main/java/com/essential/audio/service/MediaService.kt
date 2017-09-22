@@ -9,7 +9,6 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
-import android.util.Log
 import com.essential.audio.data.model.Audio
 import com.essential.audio.utils.*
 import com.google.gson.reflect.TypeToken
@@ -113,6 +112,10 @@ class MediaService : Service() {
                     putExtra(
                             Constants.Extra.IS_PREPARING,
                             mMediaController.isPreparing
+                    )
+                    putExtra(
+                            Constants.Extra.CURRENT_POSITION,
+                            mMediaController.currentPosition
                     )
                   })
         }

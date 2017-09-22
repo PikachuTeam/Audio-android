@@ -15,7 +15,6 @@ import com.essential.audio.data.model.Audio
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.drawee.view.SimpleDraweeView
 import com.facebook.imagepipeline.common.ResizeOptions
-import com.facebook.imagepipeline.request.ImageRequest
 import com.facebook.imagepipeline.request.ImageRequestBuilder
 import selft.yue.basekotlin.adapter.normal.BaseAdapter
 
@@ -50,6 +49,9 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
         holder.tvGender.text = mContext.getString(R.string.boy)
         holder.ivGender.setImageResource(R.drawable.ic_boy_underwear)
       }
+
+      holder.ivLocked.visibility = if (locked) View.VISIBLE else View.GONE
+      holder.stateArea.visibility = if (playing) View.VISIBLE else View.GONE
 
       holder.ivCover.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
         override fun onGlobalLayout() {
@@ -88,5 +90,7 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
     val ivGender = view.findViewById<ImageView>(R.id.iv_gender)
     val tvGender = view.findViewById<TextView>(R.id.tv_gender)
     val itemContainer = view.findViewById<View>(R.id.item_container)
+    val stateArea = view.findViewById<View>(R.id.state_area)
+    val ivLocked = view.findViewById<View>(R.id.iv_locked)
   }
 }

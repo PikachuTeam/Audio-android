@@ -12,7 +12,6 @@ import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.view.ViewTreeObserver
-import android.widget.Toast
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
 import com.essential.audio.service.MediaService
@@ -83,12 +82,28 @@ class HomeActivity : BaseActivity(), HomeContract.View {
           }
           Constants.Action.MEDIA_GET_CURRENT_STATE -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
-            val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
+            val progress = getIntExtra(Constants.Extra.PROGRESS, 0)
             val audioName = getStringExtra(Constants.Extra.AUDIO_NAME)
+            val isPreparing = getBooleanExtra(Constants.Extra.IS_PREPARING, false)
+            val currentPosition = getIntExtra(Constants.Extra.CURRENT_POSITION, -1)
+
+            if (mCurrentPosition == -1) {
+              mCurrentPosition = currentPosition
+              mAdapter.items[mCurrentPosition]?.playing = true
+              mAdapter.notifyItemChanged(mCurrentPosition)
+            } else if (mCurrentPosition != currentPosition) {
+              mAdapter.items[mCurrentPosition]?.playing = false
+              mAdapter.notifyItemChanged(mCurrentPosition)
+
+              mCurrentPosition = currentPosition
+              mAdapter.items[mCurrentPosition]?.playing = true
+              mAdapter.notifyItemChanged(mCurrentPosition)
+            }
+
             mBottomSheetMediaPlayer.setAudioName(audioName)
             mBottomSheetMediaPlayer.isPlaying = getBooleanExtra(Constants.Extra.IS_PLAYING, false)
             mBottomSheetMediaPlayer.setMax(duration)
-            mBottomSheetMediaPlayer.setProgress(currentPosition)
+            mBottomSheetMediaPlayer.setProgress(progress)
           }
         }
       }
@@ -206,7 +221,20 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       if (mBottomSheetMediaPlayer.visibility == View.GONE)
         mBottomSheetMediaPlayer.visibility = View.VISIBLE
 
-      mCurrentPosition = position
+      if (mCurrentPosition == -1) {
+        mCurrentPosition = position
+        mAdapter.items[mCurrentPosition]?.playing = true
+        mAdapter.notifyItemChanged(mCurrentPosition)
+      } else {
+        if (mCurrentPosition != position) {
+          mAdapter.items[mCurrentPosition]?.playing = false
+          mAdapter.notifyItemChanged(mCurrentPosition)
+
+          mCurrentPosition = position
+          mAdapter.items[mCurrentPosition]?.playing = true
+          mAdapter.notifyItemChanged(mCurrentPosition)
+        }
+      }
       // Move to media activity
       mPresenter.playAudios(position)
     }

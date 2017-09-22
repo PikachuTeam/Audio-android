@@ -25,7 +25,8 @@ object RemoteHelper {
             val isGirlVoice = it.getNumber(Tables.Audio.COLUMN_SPEAKER) == 0
             val url = it.getString(Tables.Audio.COLUMN_FILE)
             val cover = it.getString(Tables.Audio.COLUMN_COVER)
-            audios.add(Audio(name, url, isGirlVoice, cover))
+            val unlocked = it.getBoolean(Tables.Audio.COLUMN_UNLOCKED)
+            audios.add(Audio(name, url, isGirlVoice, cover, !unlocked))
           }
 
           callback.onSuccess(audios)
@@ -50,7 +51,8 @@ object RemoteHelper {
             val isGirlVoice = it.getNumber(Tables.TdAudio.COLUMN_SPEAKER) == 0
             val url = it.getString(Tables.TdAudio.COLUMN_FILE)
             val cover = it.getString(Tables.TdAudio.COLUMN_COVER)
-            audios.add(Audio(name, url, isGirlVoice, cover))
+            val unlocked = it.getBoolean(Tables.Audio.COLUMN_UNLOCKED)
+            audios.add(Audio(name, url, isGirlVoice, cover, !unlocked))
           }
 
           callback.onSuccess(audios)

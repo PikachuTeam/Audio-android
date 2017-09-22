@@ -11,6 +11,7 @@ object Tables {
     val COLUMN_FILE = "audio"
     val COLUMN_SPEAKER = "speaker"
     val COLUMN_COVER = "image"
+    val COLUMN_UNLOCKED = "unlocked"
   }
 
   object TdAudio {
@@ -19,5 +20,6 @@ object Tables {
     val COLUMN_FILE = "audio"
     val COLUMN_SPEAKER = "speaker"
     val COLUMN_COVER = "image"
+    val COLUMN_UNLOCKED = "unlocked"
   }
 }
