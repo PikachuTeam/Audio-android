@@ -45,8 +45,6 @@ class MediaController {
 
   private var mCurrentAudio: Audio? = null
 
-  var onAudioStateChanged: ((audio: Audio) -> Unit)? = null
-
   // Constructor
   init {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -62,7 +60,6 @@ class MediaController {
       // Notify previous audio state changed
       mCurrentAudio?.let {
         it.playing = false
-        onAudioStateChanged?.invoke(it)
       }
 
       mOnMediaStateListener?.onFinishPlaying()
@@ -91,7 +88,6 @@ class MediaController {
     // Notify current audio state changed
     mCurrentAudio?.let {
       it.playing = true
-      onAudioStateChanged?.invoke(it)
     }
 
     player.start()
@@ -104,7 +100,6 @@ class MediaController {
       // Notify previous audio state changed
       mCurrentAudio?.let {
         it.playing = false
-        onAudioStateChanged?.invoke(it)
       }
     }
   }
@@ -116,7 +111,6 @@ class MediaController {
       // Notify previous audio state changed
       mCurrentAudio?.let {
         it.playing = false
-        onAudioStateChanged?.invoke(it)
       }
     }
     player.reset()
@@ -174,8 +168,5 @@ class MediaController {
     player.setDataSource(audio.url)
     player.prepareAsync()
     isPreparing = true
-    mCurrentAudio?.let {
-      onAudioStateChanged?.invoke(it)
-    }
   }
 }

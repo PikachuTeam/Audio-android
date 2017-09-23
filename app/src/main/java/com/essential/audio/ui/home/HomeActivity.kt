@@ -58,10 +58,12 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             mBottomSheetMediaPlayer.isPlaying = true
           }
           Constants.Action.MEDIA_PLAY -> {
-            mBottomSheetMediaPlayer.isPlaying = true
+//            mBottomSheetMediaPlayer.isPlaying = true
+            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
           }
           Constants.Action.MEDIA_PAUSE, Constants.Action.MEDIA_FINISH_PLAYING -> {
-            mBottomSheetMediaPlayer.isPlaying = false
+//            mBottomSheetMediaPlayer.isPlaying = false
+            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
           }
           Constants.Action.MEDIA_NEXT -> {
             startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
@@ -220,20 +222,6 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       if (mBottomSheetMediaPlayer.visibility == View.GONE)
         mBottomSheetMediaPlayer.visibility = View.VISIBLE
 
-//      if (mCurrentPosition == -1) {
-//        mCurrentPosition = position
-//        mAdapter.items[mCurrentPosition]?.playing = true
-//        mAdapter.notifyItemChanged(mCurrentPosition)
-//      } else {
-//        if (mCurrentPosition != position) {
-//          mAdapter.items[mCurrentPosition]?.playing = false
-//          mAdapter.notifyItemChanged(mCurrentPosition)
-//
-//          mCurrentPosition = position
-//          mAdapter.items[mCurrentPosition]?.playing = true
-//          mAdapter.notifyItemChanged(mCurrentPosition)
-//        }
-//      }
       // Move to media activity
       mPresenter.playAudios(position)
     }
