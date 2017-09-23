@@ -17,6 +17,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
+import com.essential.audio.data.model.AudioState
 import com.essential.audio.service.MediaService
 import com.essential.audio.utils.BackgroundController
 import com.essential.audio.utils.Constants
@@ -40,37 +41,13 @@ class MediaActivity : BaseActivity(), MediaContract.View {
   private val mLoadingProgress: ProgressBar by lazy { loading_progress }
   private val mButtonPlayPause: ImageView by lazy { btn_play_pause }
   private val mTvTitle: TextView by lazy { tv_title }
+
   private var mIsPlaying: Boolean = false
 
   private val mMediaControlReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       intent?.run {
         when (action) {
-          Constants.Action.MEDIA_PREPARING -> {
-            showLoadingProgress(true)
-
-            mIsPlaying = false
-          }
-          Constants.Action.MEDIA_PREPARED -> {
-            mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-            showLoadingProgress(false)
-
-            mIsPlaying = true
-          }
-          Constants.Action.MEDIA_PLAY -> {
-            mButtonPlayPause.setImageResource(R.drawable.ic_pause)
-            mIsPlaying = true
-          }
-          Constants.Action.MEDIA_PAUSE, Constants.Action.MEDIA_FINISH_PLAYING -> {
-            mButtonPlayPause.setImageResource(R.drawable.ic_play)
-            mIsPlaying = false
-          }
-          Constants.Action.MEDIA_NEXT -> {
-            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
-          }
-          Constants.Action.MEDIA_PREVIOUS -> {
-            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
-          }
           Constants.Action.MEDIA_UPDATE_PROGRESS -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
             val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
@@ -79,14 +56,16 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             updateProgress(currentPosition, duration)
           }
           Constants.Action.MEDIA_GET_CURRENT_STATE -> {
-            val duration = getIntExtra(Constants.Extra.DURATION, 0)
-            val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
-            val isPreparing = getBooleanExtra(Constants.Extra.IS_PREPARING, false)
+            var duration = getIntExtra(Constants.Extra.DURATION, 0)
+            var currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
             val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
 
-            mIsPlaying = audio.playing
+            if (duration < 0)
+              duration = 0
+            if (currentPosition < 0)
+              currentPosition = 0
 
-            if (isPreparing) {
+            if (audio.state == AudioState.PREPARING) {
               mLoadingProgress.visibility = View.VISIBLE
               mButtonPlayPause.visibility = View.INVISIBLE
             } else {
@@ -94,8 +73,12 @@ class MediaActivity : BaseActivity(), MediaContract.View {
               mButtonPlayPause.visibility = View.VISIBLE
 
               mButtonPlayPause.setImageResource(
-                      if (mIsPlaying) R.drawable.ic_pause
-                      else R.drawable.ic_play
+                      if (audio.state == AudioState.PLAYING ||
+                              audio.state == AudioState.PREPARING ||
+                              audio.state == AudioState.PREPARED) {
+                        mIsPlaying = true
+                        R.drawable.ic_pause
+                      } else R.drawable.ic_play
               )
             }
 
@@ -103,6 +86,36 @@ class MediaActivity : BaseActivity(), MediaContract.View {
               mSeekBar.max = duration
             updateProgress(currentPosition, duration)
             mTvTitle.text = audio.name
+          }
+          Constants.Action.MEDIA_AUDIO_STATE_CHANGED -> {
+            val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+            when (audio.state) {
+              AudioState.PREPARING -> {
+                if (!audio.locked) {
+                  showLoadingProgress(true)
+                  mIsPlaying = true
+                }
+                mTvTitle.text = audio.name
+                updateProgress(audio.currentPosition, audio.duration)
+              }
+              AudioState.PREPARED -> {
+                mButtonPlayPause.setImageResource(R.drawable.ic_pause)
+                showLoadingProgress(false)
+                mIsPlaying = true
+              }
+              AudioState.PLAYING -> {
+                mButtonPlayPause.setImageResource(R.drawable.ic_pause)
+                mIsPlaying = true
+              }
+              AudioState.PAUSE -> {
+                mButtonPlayPause.setImageResource(R.drawable.ic_play)
+                mIsPlaying = false
+              }
+              AudioState.STOP -> {
+                mButtonPlayPause.setImageResource(R.drawable.ic_play)
+                mIsPlaying = false
+              }
+            }
           }
         }
       }
@@ -120,15 +133,9 @@ class MediaActivity : BaseActivity(), MediaContract.View {
 
   override fun onResume() {
     LocalBroadcastManager.getInstance(this).registerReceiver(mMediaControlReceiver, IntentFilter().apply {
-      addAction(Constants.Action.MEDIA_PREPARING)
-      addAction(Constants.Action.MEDIA_PREPARED)
-      addAction(Constants.Action.MEDIA_PLAY)
-      addAction(Constants.Action.MEDIA_PAUSE)
-      addAction(Constants.Action.MEDIA_NEXT)
-      addAction(Constants.Action.MEDIA_PREVIOUS)
-      addAction(Constants.Action.MEDIA_FINISH_PLAYING)
       addAction(Constants.Action.MEDIA_UPDATE_PROGRESS)
       addAction(Constants.Action.MEDIA_GET_CURRENT_STATE)
+      addAction(Constants.Action.MEDIA_AUDIO_STATE_CHANGED)
     })
 
     startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)

@@ -3,6 +3,7 @@ package com.essential.audio.ui.home
 import com.essential.audio.data.AppDataSource
 import com.essential.audio.data.AppRepository
 import com.essential.audio.data.model.Audio
+import com.essential.audio.data.model.AudioState
 import com.essential.audio.utils.JsonHelper
 import com.essential.audio.utils.OnRemoteResponse
 import selft.yue.basekotlin.common.BasePresenter
@@ -11,7 +12,6 @@ import selft.yue.basekotlin.common.BasePresenter
  * Created by dongc on 9/1/2017.
  */
 class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), HomeContract.Presenter<V> {
-
   private val mDataSource: AppDataSource = AppRepository()
   private val mAudios: MutableList<Audio?> = ArrayList()
   private val mFilteredAudios: MutableList<Audio?> = ArrayList()
@@ -69,28 +69,44 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
     if (realIndex != -1) {
       mAudios[realIndex]?.copyState(audio)
 
-      var previousAudio: Audio? = null
-      mAudios.indices
-              .filter { it != realIndex }
-              .forEach foreach@ { i ->
-                if (mAudios[i]?.playing == true) {
-                  previousAudio = mAudios[i]
-                  return@foreach
-                }
-              }
+      // Find the last played audio
+      val previousAudio = mAudios.firstOrNull {
+        it?.state == AudioState.PLAYING ||
+                it?.state == AudioState.PREPARING ||
+                it?.state == AudioState.PREPARED
+      }
 
       // Update previous audio
       previousAudio?.let {
-        it.playing = false
-        val foundIndex = mFilteredAudios.indices.firstOrNull { mFilteredAudios[it]?.equals(previousAudio) ?: false } ?: -1
+        val foundIndex = mFilteredAudios.indices
+                .firstOrNull { mFilteredAudios[it]?.equals(previousAudio) ?: false } ?: -1
         if (foundIndex != -1)
           view?.updateAdapter(foundIndex)
       }
 
       // Update current audio
-      val filteredIndex = mFilteredAudios.indices.firstOrNull { mFilteredAudios[it]?.equals(audio) ?: false } ?: -1
+      val filteredIndex = mFilteredAudios.indices
+              .firstOrNull { mFilteredAudios[it]?.equals(audio) ?: false } ?: -1
       if (filteredIndex != -1)
         view?.updateAdapter(filteredIndex)
     }
+  }
+
+  override fun updateAudios(audios: MutableList<Audio>) {
+    // Update current list
+    for (i in audios.indices) {
+      mFilteredAudios[i]?.let {
+        if (it.locked != audios[i].locked || it.state != audios[i].state) {
+          it.copyState(audios[i])
+          view?.updateAdapter(i)
+        }
+      }
+    }
+
+    // Update total list
+    mFilteredAudios.forEach({ audio ->
+      val foundAudio = mAudios.firstOrNull { it?.equals(audio) ?: false }
+      foundAudio?.copyState(audio ?: null)
+    })
   }
 }

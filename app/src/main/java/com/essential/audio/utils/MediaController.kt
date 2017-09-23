@@ -5,6 +5,7 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
 import com.essential.audio.data.model.Audio
+import com.essential.audio.data.model.AudioState
 
 /**
  * Created by dongc on 8/30/2017.
@@ -32,8 +33,6 @@ class MediaController {
       field = value
     }
 
-  private var mOnMediaStateListener: OnMediaStateListener? = null
-
   var audios: MutableList<Audio> = ArrayList()
     get() = field
     set(value) {
@@ -44,6 +43,10 @@ class MediaController {
     }
 
   private var mCurrentAudio: Audio? = null
+
+  var onLockedAudioChoose: ((audio: Audio) -> Unit)? = null
+
+  var onMediaStateChanged: ((audio: Audio) -> Unit)? = null
 
   // Constructor
   init {
@@ -56,38 +59,51 @@ class MediaController {
       player.setAudioStreamType(AudioManager.STREAM_MUSIC)
     }
 
-    player.setOnCompletionListener {
-      // Notify previous audio state changed
-      mCurrentAudio?.let {
-        it.playing = false
-      }
-
-      mOnMediaStateListener?.onFinishPlaying()
-    }
+    setEventListeners()
 
     player.reset()
   }
 
-  fun isPlaying(position: Int): Boolean =
+  fun isCurrentAudio(position: Int): Boolean =
           if (audios.size > 0) audios[position].equals(mCurrentAudio)
           else false
-
-  // Functions
-  fun setOnMediaPlayerStateListener(onMediaStateListener: OnMediaStateListener?) {
-    mOnMediaStateListener = onMediaStateListener
-  }
 
   fun start() {
     stop()
     mCurrentAudio = audios[currentPosition]
-    mCurrentAudio?.playing = true
-    prepare(mCurrentAudio!!)
+    mCurrentAudio?.let {
+      it.state = AudioState.PREPARING
+      it.currentPosition = 0
+      onMediaStateChanged?.invoke(it)
+
+      if (it.locked) {
+        onLockedAudioChoose?.invoke(it)
+      } else {
+        prepare(mCurrentAudio!!)
+      }
+    }
+  }
+
+  fun prepared() {
+    mCurrentAudio?.let {
+      it.currentPosition = 0
+      it.duration = player.duration
+      it.state = AudioState.PREPARED
+      onMediaStateChanged?.invoke(it)
+    }
   }
 
   fun play() {
     // Notify current audio state changed
     mCurrentAudio?.let {
-      it.playing = true
+      if (it.locked) {
+        onLockedAudioChoose?.invoke(it)
+      } else {
+        it.state = AudioState.PLAYING
+        it.currentPosition = player.currentPosition
+        it.duration = player.duration
+        onMediaStateChanged?.invoke(it)
+      }
     }
 
     player.start()
@@ -99,7 +115,9 @@ class MediaController {
 
       // Notify previous audio state changed
       mCurrentAudio?.let {
-        it.playing = false
+        it.state = AudioState.PAUSE
+        it.currentPosition = player.currentPosition
+        onMediaStateChanged?.invoke(it)
       }
     }
   }
@@ -110,13 +128,20 @@ class MediaController {
 
       // Notify previous audio state changed
       mCurrentAudio?.let {
-        it.playing = false
+        it.state = AudioState.STOP
+        it.currentPosition = 0
+        onMediaStateChanged?.invoke(it)
       }
     }
     player.reset()
   }
 
   fun next() {
+    mCurrentAudio?.let {
+      it.state = AudioState.STOP
+      onMediaStateChanged?.invoke(it)
+    }
+
     currentPosition++
     if (currentPosition >= audios.size) {
       currentPosition = 0
@@ -126,6 +151,11 @@ class MediaController {
   }
 
   fun previous() {
+    mCurrentAudio?.let {
+      it.state = AudioState.STOP
+      onMediaStateChanged?.invoke(it)
+    }
+
     currentPosition--
     if (currentPosition < 0) {
       currentPosition = audios.size - 1
@@ -138,6 +168,12 @@ class MediaController {
 
   fun seekTo(milliSecond: Int) {
     player.seekTo(milliSecond)
+  }
+
+  fun unlockAudio(audio: Audio) {
+    currentPosition = audios.indices.first { audios[it].equals(audio) }
+    audios[currentPosition].locked = false
+    start()
   }
 
   fun setOnPreparedListener(onPreparedListener: MediaPlayer.OnPreparedListener) {
@@ -154,10 +190,6 @@ class MediaController {
     player.setOnBufferingUpdateListener(onBufferingUpdateListener)
   }
 
-  fun removeOnBufferingUpdateListener() {
-    player.setOnBufferingUpdateListener(null)
-  }
-
   fun dispose() {
     if (player.isPlaying)
       player.stop()
@@ -168,5 +200,15 @@ class MediaController {
     player.setDataSource(audio.url)
     player.prepareAsync()
     isPreparing = true
+  }
+
+  private fun setEventListeners() {
+    player.setOnCompletionListener {
+      // Notify previous audio state changed
+      mCurrentAudio?.let {
+        it.state = AudioState.STOP
+        onMediaStateChanged?.invoke(it)
+      }
+    }
   }
 }

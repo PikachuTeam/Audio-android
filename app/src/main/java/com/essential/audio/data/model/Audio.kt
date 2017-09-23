@@ -4,20 +4,23 @@ package com.essential.audio.data.model
  * Created by dongc on 8/29/2017.
  */
 class Audio(var name: String, var url: String, var isGirlVoice: Boolean, var cover: String, var locked: Boolean) {
-  var playing: Boolean = false
-    get() = field
-    set(value) {
-      field = value
-    }
+  var state: AudioState = AudioState.STOP
+
+  var currentPosition = 0
+  var duration: Int = 0
 
   override fun equals(other: Any?): Boolean {
+    if (other == null)
+      return false
     if (other !is Audio)
       return false
     return name == other.name && url == other.url && isGirlVoice == other.isGirlVoice && cover == other.cover
   }
 
-  fun copyState(other: Audio) {
-    playing = other.playing
-    locked = other.locked
+  fun copyState(other: Audio?) {
+    other?.let {
+      locked = it.locked
+      state = it.state
+    }
   }
 }

@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
+import com.essential.audio.data.model.AudioState
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.drawee.view.SimpleDraweeView
 import com.facebook.imagepipeline.common.ResizeOptions
@@ -52,7 +53,9 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
       }
 
       holder.ivLocked.visibility = if (locked) View.VISIBLE else View.GONE
-      holder.stateArea.visibility = if (playing) View.VISIBLE else View.GONE
+      holder.stateArea.visibility =
+              if (state == AudioState.PLAYING || state == AudioState.PREPARING || state == AudioState.PREPARED) View.VISIBLE
+              else View.GONE
 
       holder.ivCover.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
         override fun onGlobalLayout() {

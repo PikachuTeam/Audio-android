@@ -9,10 +9,16 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
-import android.util.Log
+import android.support.v7.app.AlertDialog
+import android.view.WindowManager
+import android.widget.Toast
+import com.essential.audio.R
 import com.essential.audio.data.model.Audio
-import com.essential.audio.utils.*
-import com.google.gson.Gson
+import com.essential.audio.data.model.AudioState
+import com.essential.audio.utils.Constants
+import com.essential.audio.utils.JsonHelper
+import com.essential.audio.utils.MediaController
+import com.essential.audio.utils.NotificationHelper
 import com.google.gson.reflect.TypeToken
 
 /**
@@ -70,7 +76,7 @@ class MediaService : Service() {
       when (action) {
         Constants.Action.MEDIA_START -> {
           val chosenAudio = getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
-          if (!mMediaController.isPlaying(chosenAudio)) {
+          if (!mMediaController.isCurrentAudio(chosenAudio)) {
             mPaused = false
             mMediaController.audios = JsonHelper.instance.fromJson(
                     getStringExtra(Constants.Extra.AUDIOS),
@@ -78,12 +84,6 @@ class MediaService : Service() {
             mMediaController.currentPosition = chosenAudio
 
             mMediaController.start()
-
-            LocalBroadcastManager.getInstance(this@MediaService).sendBroadcast(Intent(Constants.Action.MEDIA_PREPARING).apply {
-              putExtra(Constants.Extra.AUDIO_NAME, mMediaController.getCurrentAudio().name)
-            })
-
-            mNotificationHelper.createNotification(mMediaController.getCurrentAudio(), false, true, true)
           } else {
             if (mPaused) {
               mPaused = false
@@ -98,18 +98,13 @@ class MediaService : Service() {
         Constants.Action.MEDIA_GET_CURRENT_STATE -> {
           LocalBroadcastManager.getInstance(this@MediaService)
                   .sendBroadcast(Intent(Constants.Action.MEDIA_GET_CURRENT_STATE).apply {
-                    putExtra(Constants.Extra.IS_PLAYING, mMediaController.isPlaying())
                     putExtra(
                             Constants.Extra.PROGRESS,
-                            mMediaController.player.currentPosition
+                            if (mMediaController.isPlaying()) 0 else mMediaController.player.currentPosition
                     )
                     putExtra(
                             Constants.Extra.DURATION,
                             if (mMediaController.isPreparing) 0 else mMediaController.player.duration
-                    )
-                    putExtra(
-                            Constants.Extra.IS_PREPARING,
-                            mMediaController.isPreparing
                     )
                     putExtra(
                             Constants.Extra.CURRENT_AUDIO,
@@ -150,9 +145,6 @@ class MediaService : Service() {
     intent?.run {
       when (action) {
         Constants.Action.MEDIA_PLAY -> {
-          LocalBroadcastManager.getInstance(this@MediaService)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_PLAY))
-
           mTimeHandler?.post(mUpdateTimeTask)
           mMediaController.play()
           mPaused = false
@@ -162,13 +154,6 @@ class MediaService : Service() {
             mTimeHandler?.post(mUpdateTimeTask)
           }
           mMediaController.previous()
-          LocalBroadcastManager.getInstance(this@MediaService)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_PREVIOUS).apply {
-                    putExtra(
-                            Constants.Extra.CURRENT_AUDIO,
-                            JsonHelper.instance.toJson(mMediaController.getCurrentAudio())
-                    )
-                  })
           mPaused = false
         }
         Constants.Action.MEDIA_NEXT -> {
@@ -176,24 +161,13 @@ class MediaService : Service() {
             mTimeHandler?.post(mUpdateTimeTask)
           }
           mMediaController.next()
-          LocalBroadcastManager.getInstance(this@MediaService)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_NEXT).apply {
-                    putExtra(
-                            Constants.Extra.CURRENT_AUDIO,
-                            JsonHelper.instance.toJson(mMediaController.getCurrentAudio())
-                    )
-                  })
           mPaused = false
         }
         Constants.Action.MEDIA_PAUSE -> {
-          LocalBroadcastManager.getInstance(this@MediaService)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_PAUSE))
-
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
           mMediaController.pause()
 
-          isPlaying = false
           onGoing = false
           mPaused = true
         }
@@ -209,15 +183,8 @@ class MediaService : Service() {
   private fun setEventListeners() {
     mMediaController.setOnPreparedListener(MediaPlayer.OnPreparedListener {
       mMediaController.isPreparing = false
-      if (!mPaused) {
-        mMediaController.seekTo(0)
-        mMediaController.play()
-        mTimeHandler?.post(mUpdateTimeTask)
-        LocalBroadcastManager.getInstance(this@MediaService)
-                .sendBroadcast(Intent(Constants.Action.MEDIA_PREPARED).apply {
-                  putExtra(Constants.Extra.DURATION, mMediaController.player.duration)
-                })
-      }
+      if (!mPaused)
+        mMediaController.prepared()
     })
 
     mMediaController.setOnBufferingUpdateListener(
@@ -228,32 +195,78 @@ class MediaService : Service() {
                       })
             })
 
-    mMediaController.setOnMediaPlayerStateListener(object : OnMediaStateListener {
-      override fun onFinishPlaying() {
-        mNotificationHelper.createNotification(
-                mMediaController.getCurrentAudio(),
-                false,
-                false,
-                false
-        )
-        mTimeHandler?.removeCallbacks(mUpdateTimeTask)
-        mPaused = true
-        LocalBroadcastManager.getInstance(this@MediaService)
-                .sendBroadcast(Intent(Constants.Action.MEDIA_FINISH_PLAYING))
-      }
+    mMediaController.onLockedAudioChoose = { audio ->
+      val dialog = AlertDialog.Builder(this, R.style.AppTheme_MaterialDialog)
+              .setMessage(getString(R.string.locked_item))
+              .setPositiveButton(getString(R.string.watch_to_unlock)) { d, _ ->
+                d.dismiss()
+                mMediaController.unlockAudio(audio)
+                Toast.makeText(this, "Unlock", Toast.LENGTH_SHORT).show()
+              }
+              .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                d.dismiss()
+                Toast.makeText(this, "Still lock", Toast.LENGTH_SHORT).show()
+              }
+              .create()
 
-      override fun onAudioCompleted() {
-        mPaused = true
-        LocalBroadcastManager.getInstance(this@MediaService)
-                .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_COMPLETED))
-      }
-    })
+      dialog.window.setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT)
+      dialog.window.attributes.windowAnimations = R.style.DialogAnimation
+      dialog.show()
+    }
 
-    mMediaController.onAudioStateChanged = { audio ->
-      Log.e("MediaService", "Aloha")
-      LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
-        putExtra(Constants.Extra.CURRENT_AUDIO, JsonHelper.instance.toJson(audio))
-      })
+    mMediaController.onMediaStateChanged = { audio ->
+      val audioJson = JsonHelper.instance.toJson(audio)
+      when (audio.state) {
+        AudioState.PREPARING -> {
+          LocalBroadcastManager.getInstance(this)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
+                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
+                  })
+
+          mNotificationHelper.createNotification(audio, false, true, true)
+        }
+        AudioState.PREPARED -> {
+          LocalBroadcastManager.getInstance(this)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
+                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
+                  })
+          if (!mPaused) {
+            mMediaController.play()
+          }
+        }
+        AudioState.PLAYING -> {
+          mTimeHandler?.post(mUpdateTimeTask)
+
+          mNotificationHelper.createNotification(audio, false, true, true)
+
+          LocalBroadcastManager.getInstance(this)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
+                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
+                  })
+        }
+        AudioState.PAUSE -> {
+          mTimeHandler?.removeCallbacks(mUpdateTimeTask)
+
+          mNotificationHelper.createNotification(audio, false, false, false)
+
+          LocalBroadcastManager.getInstance(this)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
+                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
+                  })
+        }
+        AudioState.STOP -> {
+          mPaused = true
+
+          mTimeHandler?.removeCallbacks(mUpdateTimeTask)
+
+          mNotificationHelper.createNotification(audio, false, false, false)
+
+          LocalBroadcastManager.getInstance(this)
+                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
+                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
+                  })
+        }
+      }
     }
   }
 

@@ -33,5 +33,7 @@ interface HomeContract {
     fun filter(voiceType: AudiosAdapter.Voice)
 
     fun updateAudio(audio: Audio)
+
+    fun updateAudios(audios: MutableList<Audio>)
   }
 }

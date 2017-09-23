@@ -10,11 +10,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
 import com.essential.audio.R
 import com.essential.audio.data.model.Audio
+import com.essential.audio.data.model.AudioState
 import com.essential.audio.service.MediaService
 import com.essential.audio.ui.media.MediaActivity
 import com.essential.audio.utils.Constants
@@ -23,7 +23,7 @@ import com.facebook.common.util.UriUtil
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.common.ResizeOptions
 import com.facebook.imagepipeline.request.ImageRequestBuilder
-import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
@@ -46,31 +46,12 @@ class HomeActivity : BaseActivity(), HomeContract.View {
 
   private var mCanExit = false
 
+  private var mCanChangeScreen = true
+
   private val mMediaControlReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       intent?.run {
         when (action) {
-          Constants.Action.MEDIA_PREPARING -> {
-            mBottomSheetMediaPlayer.setAudioName(getStringExtra(Constants.Extra.AUDIO_NAME))
-            mBottomSheetMediaPlayer.isPlaying = false
-          }
-          Constants.Action.MEDIA_PREPARED -> {
-            mBottomSheetMediaPlayer.isPlaying = true
-          }
-          Constants.Action.MEDIA_PLAY -> {
-//            mBottomSheetMediaPlayer.isPlaying = true
-            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
-          }
-          Constants.Action.MEDIA_PAUSE, Constants.Action.MEDIA_FINISH_PLAYING -> {
-//            mBottomSheetMediaPlayer.isPlaying = false
-            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
-          }
-          Constants.Action.MEDIA_NEXT -> {
-            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
-          }
-          Constants.Action.MEDIA_PREVIOUS -> {
-            startMediaService(Constants.Action.MEDIA_GET_CURRENT_STATE)
-          }
           Constants.Action.MEDIA_UPDATE_PROGRESS -> {
             val duration = getIntExtra(Constants.Extra.DURATION, 0)
             val currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
@@ -83,22 +64,56 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             mBottomSheetMediaPlayer.setProgress(currentPosition)
           }
           Constants.Action.MEDIA_GET_CURRENT_STATE -> {
-            val duration = getIntExtra(Constants.Extra.DURATION, 0)
-            val progress = getIntExtra(Constants.Extra.PROGRESS, 0)
-            val isPreparing = getBooleanExtra(Constants.Extra.IS_PREPARING, false)
-            val currentAudio = Gson().fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+            var duration = getIntExtra(Constants.Extra.DURATION, 0)
+            var progress = getIntExtra(Constants.Extra.PROGRESS, 0)
+            val currentAudio = JsonHelper.instance
+                    .fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+
+            if (duration < 0)
+              duration = 0
+            if (progress < 0)
+              progress = 0
 
             mBottomSheetMediaPlayer.setAudioName(currentAudio.name)
-            mBottomSheetMediaPlayer.isPlaying = currentAudio.playing
+            mBottomSheetMediaPlayer.isPlaying = currentAudio.state == AudioState.PLAYING ||
+                    currentAudio.state == AudioState.PREPARED || currentAudio.state == AudioState.PREPARING
             mBottomSheetMediaPlayer.setMax(duration)
             mBottomSheetMediaPlayer.setProgress(progress)
 
             mPresenter.updateAudio(currentAudio)
           }
           Constants.Action.MEDIA_AUDIO_STATE_CHANGED -> {
-            Log.e("HomeActivity", "Audio change state")
-            val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
-//            mPresenter.updateAudio(audio)
+            val audio = JsonHelper.instance
+                    .fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+            mPresenter.updateAudio(audio)
+            when (audio.state) {
+              AudioState.PREPARING -> {
+                if (mCanChangeScreen) {
+                  openMediaActivity()
+                }
+                mBottomSheetMediaPlayer.setAudioName(audio.name)
+                mBottomSheetMediaPlayer.isPlaying = false
+              }
+              AudioState.PREPARED -> {
+                mBottomSheetMediaPlayer.setMax(audio.duration)
+                mBottomSheetMediaPlayer.setProgress(audio.currentPosition)
+              }
+              AudioState.PLAYING -> {
+                mBottomSheetMediaPlayer.isPlaying = true
+                mBottomSheetMediaPlayer.setProgress(audio.currentPosition)
+              }
+              AudioState.PAUSE -> {
+                mBottomSheetMediaPlayer.isPlaying = false
+              }
+              AudioState.STOP -> {
+                mBottomSheetMediaPlayer.isPlaying = false
+              }
+            }
+          }
+          Constants.Action.MEDIA_UPDATE_LIST -> {
+            val audiosJsonString = getStringExtra(Constants.Extra.AUDIOS)
+            mPresenter.updateAudios(JsonHelper.instance
+                    .fromJson(audiosJsonString, object : TypeToken<MutableList<Audio>>() {}.type))
           }
         }
       }
@@ -119,24 +134,25 @@ class HomeActivity : BaseActivity(), HomeContract.View {
   }
 
   override fun onResume() {
+    mCanChangeScreen = true
+
     LocalBroadcastManager.getInstance(this).registerReceiver(mMediaControlReceiver, IntentFilter().apply {
-      addAction(Constants.Action.MEDIA_PREPARING)
-      addAction(Constants.Action.MEDIA_PREPARED)
-      addAction(Constants.Action.MEDIA_PLAY)
-      addAction(Constants.Action.MEDIA_PAUSE)
-      addAction(Constants.Action.MEDIA_NEXT)
-      addAction(Constants.Action.MEDIA_PREVIOUS)
-      addAction(Constants.Action.MEDIA_FINISH_PLAYING)
       addAction(Constants.Action.MEDIA_UPDATE_PROGRESS)
       addAction(Constants.Action.MEDIA_GET_CURRENT_STATE)
       addAction(Constants.Action.MEDIA_AUDIO_STATE_CHANGED)
+      addAction(Constants.Action.MEDIA_UPDATE_LIST)
     })
 
-    if (mBottomSheetMediaPlayer.visibility == View.VISIBLE)
+    if (mBottomSheetMediaPlayer.visibility == View.VISIBLE) {
+      startService(Intent(this, MediaService::class.java).apply {
+        action = Constants.Action.MEDIA_UPDATE_LIST
+        putExtra(Constants.Extra.UPDATE_CONTROLLER, false)
+      })
+
       startService(Intent(this, MediaService::class.java).apply {
         action = Constants.Action.MEDIA_GET_CURRENT_STATE
       })
-
+    }
     super.onResume()
   }
 
@@ -184,8 +200,6 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
       putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
     })
-
-    openMediaActivity()
   }
 
   override fun updateUI(audio: Audio) {
@@ -222,6 +236,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       if (mBottomSheetMediaPlayer.visibility == View.GONE)
         mBottomSheetMediaPlayer.visibility = View.VISIBLE
 
+      mCanChangeScreen = true
       // Move to media activity
       mPresenter.playAudios(position)
     }
@@ -261,6 +276,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     }
 
     mBottomSheetMediaPlayer.onFunctionClickListener = { view ->
+      mCanChangeScreen = false
       if (view.id == R.id.btn_play_pause) {
         if (mBottomSheetMediaPlayer.isPlaying) {
           startMediaService(Constants.Action.MEDIA_PAUSE)
