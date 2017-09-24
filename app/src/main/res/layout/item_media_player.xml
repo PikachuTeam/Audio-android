@@ -7,7 +7,7 @@
     android:background="?attr/selectableItemBackground"
     android:orientation="vertical">
 
-    <com.essential.audio.widget.MediaProgressBar
+    <com.essentd.TDAudio.widget.MediaProgressBar
         android:id="@+id/progress_media"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

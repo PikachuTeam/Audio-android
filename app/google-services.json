@@ -8,9 +8,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:274290109711:android:c75605c39e37b3a6",
+        "mobilesdk_app_id": "1:274290109711:android:f74bdec68df948ea",
         "android_client_info": {
-          "package_name": "com.essential.audio"
+          "package_name": "com.essentd.TDAudio"
         }
       },
       "oauth_client": [

@@ -42,7 +42,7 @@
             android:textSize="22sp" />
     </android.support.v7.widget.Toolbar>
 
-    <com.essential.audio.widget.MediaPlayerBottomSheet
+    <com.essentd.TDAudio.widget.MediaPlayerBottomSheet
         android:id="@+id/bottom_sheet_media_player"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
