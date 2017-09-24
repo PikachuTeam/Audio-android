@@ -17,6 +17,7 @@ import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 import com.essentd.TDAudio.service.MediaService
 import com.essentd.TDAudio.ui.media.MediaActivity
+import com.essentd.TDAudio.utils.AdsController
 import com.essentd.TDAudio.utils.Constants
 import com.essentd.TDAudio.utils.JsonHelper
 import com.facebook.common.util.UriUtil
@@ -89,6 +90,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             when (audio.state) {
               AudioState.PREPARING -> {
                 if (mCanChangeScreen && !audio.locked) {
+                  mCanChangeScreen = false
                   openMediaActivity()
                 }
                 mBottomSheetMediaPlayer.setAudioName(audio.name)
@@ -99,8 +101,10 @@ class HomeActivity : BaseActivity(), HomeContract.View {
                 mBottomSheetMediaPlayer.setProgress(audio.currentPosition)
               }
               AudioState.PLAYING -> {
-                if (mCanChangeScreen)
+                if (mCanChangeScreen) {
+                  mCanChangeScreen = false
                   openMediaActivity()
+                }
 
                 mBottomSheetMediaPlayer.isPlaying = true
                 mBottomSheetMediaPlayer.setProgress(audio.currentPosition)
@@ -159,8 +163,12 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     super.onResume()
   }
 
-  override fun onDestroy() {
+  override fun onStop() {
     LocalBroadcastManager.getInstance(this).unregisterReceiver(mMediaControlReceiver)
+    super.onStop()
+  }
+
+  override fun onDestroy() {
     mPresenter.dispose()
     super.onDestroy()
   }

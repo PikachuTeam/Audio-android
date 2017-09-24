@@ -4,6 +4,7 @@ import TDAudio.R
 import android.app.Application
 import com.crashlytics.android.Crashlytics
 import com.facebook.drawee.backends.pipeline.Fresco
+import com.google.android.gms.ads.MobileAds
 import com.parse.Parse
 import io.fabric.sdk.android.Fabric
 
@@ -26,5 +27,7 @@ class AudioApplication : Application() {
             .debuggable(true)
             .build()
     Fabric.with(fabric)
+
+    MobileAds.initialize(this, "ca-app-pub-3786715234447481~8518196345")
   }
 }

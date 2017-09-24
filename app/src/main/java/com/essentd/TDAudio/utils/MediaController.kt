@@ -75,6 +75,7 @@ class MediaController {
 
   fun start() {
     stop()
+    isPreparing = true
     mCurrentAudio = audios[currentPosition]
     mCurrentAudio?.let {
       it.state = AudioState.PREPARING
@@ -178,9 +179,8 @@ class MediaController {
     player.seekTo(milliSecond)
   }
 
-  fun unlockAudio(audio: Audio) {
-    currentPosition = audios.indices.first { audios[it].equals(audio) }
-    audios[currentPosition].locked = false
+  fun unlockAudio() {
+    mCurrentAudio?.locked = false
     start()
   }
 

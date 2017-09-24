@@ -15,11 +15,11 @@ import android.view.WindowManager
 import android.widget.Toast
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
-import com.essentd.TDAudio.utils.Constants
-import com.essentd.TDAudio.utils.JsonHelper
-import com.essentd.TDAudio.utils.MediaController
-import com.essentd.TDAudio.utils.NotificationHelper
+import com.essentd.TDAudio.utils.*
+import com.google.android.gms.ads.reward.RewardItem
+import com.google.android.gms.ads.reward.RewardedVideoAdListener
 import com.google.gson.reflect.TypeToken
+import com.startapp.android.publish.adsCommon.VideoListener
 
 /**
  * Created by dongc on 9/2/2017.
@@ -30,8 +30,10 @@ class MediaService : Service() {
 
   private lateinit var mNotificationHelper: NotificationHelper
   private lateinit var mMediaController: MediaController
+  private lateinit var mAdController: AdsController
 
   private var mPaused: Boolean = false
+  private var mUnlocked: Boolean = false
 
   private var mTimeHandler: Handler? = Handler()
   private val mUpdateTimeTask: Runnable = object : Runnable {
@@ -63,6 +65,7 @@ class MediaService : Service() {
 
     mNotificationHelper = NotificationHelper(applicationContext)
     mMediaController = MediaController()
+    mAdController = AdsController(this)
 
     setEventListeners()
   }
@@ -74,6 +77,10 @@ class MediaService : Service() {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     intent?.run {
       when (action) {
+        Constants.Action.INIT -> {
+//          mAdController.loadGoogleVideo()
+          mAdController.loadAd()
+        }
         Constants.Action.MEDIA_START -> {
           val chosenAudio = getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
           if (!mMediaController.isCurrentAudio(chosenAudio)) {
@@ -140,8 +147,6 @@ class MediaService : Service() {
   }
 
   private fun executeWork(intent: Intent?) {
-    var isPlaying = true
-    var onGoing = true
     intent?.run {
       when (action) {
         Constants.Action.MEDIA_PLAY -> {
@@ -167,17 +172,10 @@ class MediaService : Service() {
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
           mMediaController.pause()
-
-          onGoing = false
           mPaused = true
         }
       }
     }
-    mNotificationHelper.createNotification(
-            mMediaController.getCurrentAudio(),
-            false,
-            isPlaying,
-            onGoing)
   }
 
   private fun setEventListeners() {
@@ -196,12 +194,12 @@ class MediaService : Service() {
             })
 
     mMediaController.onLockedAudioChoose = { audio ->
+      mUnlocked = false
       val dialog = AlertDialog.Builder(this, R.style.AppTheme_MaterialDialog)
               .setMessage(getString(R.string.locked_item))
               .setPositiveButton(getString(R.string.watch_to_unlock)) { d, _ ->
                 d.dismiss()
-                mMediaController.unlockAudio(audio)
-                Toast.makeText(this, "Unlock", Toast.LENGTH_SHORT).show()
+                mAdController.showAd()
               }
               .setNegativeButton(getString(R.string.cancel)) { d, _ ->
                 d.dismiss()
@@ -266,6 +264,39 @@ class MediaService : Service() {
         }
       }
     }
+
+    mAdController.setGoogleVideoAdListener(object : RewardedVideoAdListener {
+      override fun onRewardedVideoAdClosed() {
+        mAdController.loadAd()
+        if (mUnlocked)
+          mMediaController.unlockAudio()
+      }
+
+      override fun onRewardedVideoAdLeftApplication() {
+      }
+
+      override fun onRewardedVideoAdLoaded() {
+      }
+
+      override fun onRewardedVideoAdOpened() {
+      }
+
+      override fun onRewardedVideoStarted() {
+      }
+
+      override fun onRewardedVideoAdFailedToLoad(errorCode: Int) {
+      }
+
+      override fun onRewarded(rewardItem: RewardItem?) {
+        mUnlocked = true
+      }
+    })
+
+    mAdController.setStartAppVideoAdListener(VideoListener {
+      mAdController.showAd()
+      mUnlocked = true
+      mMediaController.unlockAudio()
+    })
   }
 
   private inline fun <reified T> genericType() = object : TypeToken<T>() {}.type

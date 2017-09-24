@@ -7,7 +7,9 @@ import android.os.Build
 import android.os.Bundle
 import android.view.ViewTreeObserver
 import TDAudio.R
+import com.essentd.TDAudio.service.MediaService
 import com.essentd.TDAudio.ui.home.HomeActivity
+import com.essentd.TDAudio.utils.AdsController
 import com.essentd.TDAudio.utils.BackgroundController
 import com.essentd.TDAudio.utils.Constants
 import com.facebook.common.util.UriUtil
@@ -41,8 +43,20 @@ class SplashActivity : BaseActivity() {
                 FirebaseRemoteConfig.getInstance().getString(Constants.FirebaseConfig.IMAGES)
               else
                 FirebaseRemoteConfig.getInstance().getString(Constants.FirebaseConfig.PREVIEW_IMAGES)
+      val adsAvailable = FirebaseRemoteConfig.getInstance().getString(Constants.FirebaseConfig.ADS_AVAILABLE)
       FirebaseRemoteConfig.getInstance().activateFetched()
       BackgroundController.instance.setBackgroundImages(images)
+
+      val ads = adsAvailable.split(',')
+      if (ads.size > 1) {
+        AdsController.adMode = AdsController.ALL
+      } else {
+        if (ads[0] == "admob") {
+          AdsController.adMode = AdsController.GOOGLE
+        } else {
+          AdsController.adMode = AdsController.START_APP
+        }
+      }
 
       startActivity(Intent(this, HomeActivity::class.java))
       finish()
@@ -71,6 +85,12 @@ class SplashActivity : BaseActivity() {
     setBackground()
 
     BackgroundController.instance.init(this)
+
+    AdsController.init(this)
+
+    startService(Intent(this, MediaService::class.java).apply {
+      action = Constants.Action.INIT
+    })
 
     fetchFirebaseConfig()
   }

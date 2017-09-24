@@ -12,5 +12,5 @@
 
     <string name="locked_item">Bài này đang bị khóa! Xem video để mở khóa?</string>
     <string name="watch_to_unlock">Xem</string>
-    <string name="cancel">Đéo xem</string>
+    <string name="cancel">Bỏ qua</string>
 </resources>
