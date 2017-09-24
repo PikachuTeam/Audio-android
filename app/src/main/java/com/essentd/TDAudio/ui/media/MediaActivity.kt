@@ -65,15 +65,15 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             if (currentPosition < 0)
               currentPosition = 0
 
-            if (audio.state == AudioState.PREPARING) {
+            if (audio.getState() == AudioState.PREPARING) {
               showLoadingProgress(true)
             } else {
               showLoadingProgress(false)
 
               mButtonPlayPause.setImageResource(
-                      if (audio.state == AudioState.PLAYING ||
-                              audio.state == AudioState.PREPARING ||
-                              audio.state == AudioState.PREPARED) {
+                      if (audio.getState() == AudioState.PLAYING ||
+                              audio.getState() == AudioState.PREPARING ||
+                              audio.getState() == AudioState.PREPARED) {
                         mIsPlaying = true
                         R.drawable.ic_pause
                       } else R.drawable.ic_play
@@ -87,7 +87,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
           }
           Constants.Action.MEDIA_AUDIO_STATE_CHANGED -> {
             val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
-            when (audio.state) {
+            when (audio.getState()) {
               AudioState.PREPARING -> {
                 if (!audio.locked) {
                   showLoadingProgress(true)

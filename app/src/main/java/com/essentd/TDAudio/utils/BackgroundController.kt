@@ -20,8 +20,8 @@ import com.facebook.imagepipeline.request.ImageRequestBuilder
  * Created by dong on 17/09/2017.
  */
 class BackgroundController private constructor() {
-  private val UPDATE_INTERVAL = 10000L
-  private val ANIMATION_DURATION = 800L
+  private val UPDATE_INTERVAL = 15000L
+  private val ANIMATION_DURATION = 3000L
 
   private val mBackgroundImages: MutableList<String> = ArrayList()
 
@@ -130,9 +130,6 @@ class BackgroundController private constructor() {
   }
 
   private fun show1() {
-//    mIvBackground1.alpha = 0f
-//    mIvBackground1.visibility = View.VISIBLE
-
     mIvBackground1.animate().alpha(1f).setDuration(ANIMATION_DURATION).setListener(null)
     mIvBackground2.animate().alpha(0f).setDuration(ANIMATION_DURATION).setListener(object : AnimatorListenerAdapter() {
       override fun onAnimationEnd(animation: Animator?) {
@@ -141,16 +138,11 @@ class BackgroundController private constructor() {
           mCurrentPosition = 0
 
         setImageBackground(mIvBackground2, mBackgroundImages[mCurrentPosition])
-
-//        mIvBackground2.visibility = View.GONE
       }
     })
   }
 
   private fun show2() {
-//    mIvBackground2.alpha = 0f
-//    mIvBackground2.visibility = View.VISIBLE
-
     mIvBackground1.animate().alpha(0f).setDuration(ANIMATION_DURATION).setListener(object : AnimatorListenerAdapter() {
       override fun onAnimationEnd(animation: Animator?) {
         mCurrentPosition++
@@ -158,8 +150,6 @@ class BackgroundController private constructor() {
           mCurrentPosition = 0
 
         setImageBackground(mIvBackground1, mBackgroundImages[mCurrentPosition])
-
-//        mIvBackground1.visibility = View.GONE
       }
     })
     mIvBackground2.animate().alpha(1f).setDuration(ANIMATION_DURATION).setListener(null)

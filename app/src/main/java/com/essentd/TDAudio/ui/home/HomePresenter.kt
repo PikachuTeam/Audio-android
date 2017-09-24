@@ -71,9 +71,9 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
 
       // Find the last played audio
       val previousAudio = mAudios.firstOrNull {
-        it?.state == AudioState.PLAYING ||
-                it?.state == AudioState.PREPARING ||
-                it?.state == AudioState.PREPARED
+        it?.getState() == AudioState.PLAYING ||
+                it?.getState() == AudioState.PREPARING ||
+                it?.getState() == AudioState.PREPARED
       }
 
       // Update previous audio

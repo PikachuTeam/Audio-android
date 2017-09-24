@@ -4,7 +4,6 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
-import android.util.Log
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 
@@ -14,32 +13,21 @@ import com.essentd.TDAudio.data.model.AudioState
 class MediaController {
   // Properties
   val player: MediaPlayer = MediaPlayer()
-    get() = field
 
   var currentPosition = -1
-    get() = field
     set(value) {
       // Update previous audio state
       if (field != -1 && field < audios.size)
-        audios[field].state = AudioState.STOP
+        audios[field].setState(AudioState.STOP)
       // Update current audio
       field = value
     }
 
   var category = -1
-    get() = field
-    set(value) {
-      field = value
-    }
 
   var isPreparing = false
-    get() = field
-    set(value) {
-      field = value
-    }
 
   var audios: MutableList<Audio> = ArrayList()
-    get() = field
     set(value) {
       field = value
       currentPosition =
@@ -78,7 +66,7 @@ class MediaController {
     isPreparing = true
     mCurrentAudio = audios[currentPosition]
     mCurrentAudio?.let {
-      it.state = AudioState.PREPARING
+      it.setState(AudioState.PREPARING)
       it.currentPosition = 0
       onMediaStateChanged?.invoke(it)
 
@@ -94,7 +82,7 @@ class MediaController {
     mCurrentAudio?.let {
       it.currentPosition = 0
       it.duration = player.duration
-      it.state = AudioState.PREPARED
+      it.setState(AudioState.PREPARED)
       onMediaStateChanged?.invoke(it)
     }
   }
@@ -105,7 +93,7 @@ class MediaController {
       if (it.locked) {
         onLockedAudioChoose?.invoke(it)
       } else {
-        it.state = AudioState.PLAYING
+        it.setState(AudioState.PLAYING)
         it.currentPosition = player.currentPosition
         it.duration = player.duration
         onMediaStateChanged?.invoke(it)
@@ -122,7 +110,7 @@ class MediaController {
 
         // Notify previous audio state changed
         mCurrentAudio?.let {
-          it.state = AudioState.PAUSE
+          it.setState(AudioState.PAUSE)
           it.currentPosition = player.currentPosition
           onMediaStateChanged?.invoke(it)
         }
@@ -137,7 +125,7 @@ class MediaController {
 
     // Notify previous audio state changed
     mCurrentAudio?.let {
-      it.state = AudioState.STOP
+      it.setState(AudioState.STOP)
       it.currentPosition = 0
       onMediaStateChanged?.invoke(it)
     }
@@ -147,7 +135,7 @@ class MediaController {
 
   fun next() {
     mCurrentAudio?.let {
-      it.state = AudioState.STOP
+      it.setState(AudioState.STOP)
       onMediaStateChanged?.invoke(it)
     }
 
@@ -161,7 +149,7 @@ class MediaController {
 
   fun previous() {
     mCurrentAudio?.let {
-      it.state = AudioState.STOP
+      it.setState(AudioState.STOP)
       onMediaStateChanged?.invoke(it)
     }
 
@@ -214,7 +202,7 @@ class MediaController {
     player.setOnCompletionListener {
       // Notify previous audio state changed
       mCurrentAudio?.let {
-        it.state = AudioState.STOP
+        it.setState(AudioState.STOP)
         onMediaStateChanged?.invoke(it)
       }
     }

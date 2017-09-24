@@ -9,6 +9,9 @@ import com.essentd.TDAudio.utils.OnRemoteResponse
  */
 class AppRepository : AppDataSource {
   override fun fetchAudios(callback: OnRemoteResponse<MutableList<Audio?>>) {
-    RemoteHelper.fetchAudios(callback)
+//    if (BuildConfig.DEBUG)
+//      RemoteHelper.fetchAudios(callback)
+//    else
+      RemoteHelper.fetchTdAudios(callback)
   }
 }

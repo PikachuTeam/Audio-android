@@ -76,8 +76,8 @@ class HomeActivity : BaseActivity(), HomeContract.View {
               progress = 0
 
             mBottomSheetMediaPlayer.setAudioName(currentAudio.name)
-            mBottomSheetMediaPlayer.isPlaying = currentAudio.state == AudioState.PLAYING ||
-                    currentAudio.state == AudioState.PREPARED || currentAudio.state == AudioState.PREPARING
+            mBottomSheetMediaPlayer.isPlaying = currentAudio.getState() == AudioState.PLAYING ||
+                    currentAudio.getState() == AudioState.PREPARED || currentAudio.getState() == AudioState.PREPARING
             mBottomSheetMediaPlayer.setMax(duration)
             mBottomSheetMediaPlayer.setProgress(progress)
 
@@ -87,12 +87,15 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             val audio = JsonHelper.instance
                     .fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
             mPresenter.updateAudio(audio)
-            when (audio.state) {
+            when (audio.getState()) {
               AudioState.PREPARING -> {
                 if (mCanChangeScreen && !audio.locked) {
                   mCanChangeScreen = false
                   openMediaActivity()
                 }
+                mBottomSheetMediaPlayer.setMax(0)
+                mBottomSheetMediaPlayer.setProgress(0)
+
                 mBottomSheetMediaPlayer.setAudioName(audio.name)
                 mBottomSheetMediaPlayer.isPlaying = false
               }

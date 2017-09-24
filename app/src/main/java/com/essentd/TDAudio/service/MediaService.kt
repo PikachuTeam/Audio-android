@@ -203,7 +203,6 @@ class MediaService : Service() {
               }
               .setNegativeButton(getString(R.string.cancel)) { d, _ ->
                 d.dismiss()
-                Toast.makeText(this, "Still lock", Toast.LENGTH_SHORT).show()
               }
               .create()
 
@@ -214,7 +213,7 @@ class MediaService : Service() {
 
     mMediaController.onMediaStateChanged = { audio ->
       val audioJson = JsonHelper.instance.toJson(audio)
-      when (audio.state) {
+      when (audio.getState()) {
         AudioState.PREPARING -> {
           LocalBroadcastManager.getInstance(this)
                   .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
@@ -293,7 +292,7 @@ class MediaService : Service() {
     })
 
     mAdController.setStartAppVideoAdListener(VideoListener {
-      mAdController.showAd()
+      mAdController.loadAd()
       mUnlocked = true
       mMediaController.unlockAudio()
     })

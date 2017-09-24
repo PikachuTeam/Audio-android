@@ -28,13 +28,10 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
   }
 
   private val mContext = context
-  private var mCurrentAudio: Audio? = null
+  private var mImageWidth = 0
+  private var mImageHeight = 0
 
   var onMainItemClick: ((position: Int) -> Unit)? = null
-    get() = field
-    set(value) {
-      field = value
-    }
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder =
           ItemHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_audio, parent, false))
@@ -54,29 +51,32 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
 
       holder.ivLocked.visibility = if (locked) View.VISIBLE else View.GONE
       holder.stateArea.visibility =
-              if (state == AudioState.PLAYING || state == AudioState.PREPARING || state == AudioState.PREPARED) View.VISIBLE
+              if (getState() == AudioState.PLAYING || getState() == AudioState.PREPARING || getState() == AudioState.PREPARED) View.VISIBLE
               else View.GONE
 
-      holder.ivCover.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-        override fun onGlobalLayout() {
-          if (Build.VERSION.SDK_INT < 16)
-            holder.ivCover.viewTreeObserver.removeGlobalOnLayoutListener(this)
-          else
-            holder.ivCover.viewTreeObserver.removeOnGlobalLayoutListener(this)
+      if (mImageWidth == 0 || mImageHeight == 0) {
+        if (holder.ivCover.measuredWidth == 0 || holder.ivCover.measuredHeight == 0) {
+          holder.ivCover.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+              holder.ivCover.viewTreeObserver.removeOnPreDrawListener(this)
 
-          val imageUri = Uri.parse(this@run.cover.trim())
+              mImageWidth = holder.ivCover.measuredWidth
+              mImageHeight = holder.ivCover.measuredHeight
 
-          val imageRequest = ImageRequestBuilder
-                  .newBuilderWithSource(imageUri)
-                  .setResizeOptions(ResizeOptions(holder.ivCover.width, holder.ivCover.height))
-                  .build()
+              loadImage(holder.ivCover, this@run.cover)
 
-          holder.ivCover.controller = Fresco.newDraweeControllerBuilder()
-                  .setOldController(holder.ivCover.controller)
-                  .setImageRequest(imageRequest)
-                  .build()
+              return false
+            }
+          })
+        } else {
+          mImageWidth = holder.ivCover.measuredWidth
+          mImageHeight = holder.ivCover.measuredHeight
+
+          loadImage(holder.ivCover, cover)
         }
-      })
+      } else {
+        loadImage(holder.ivCover, cover)
+      }
 
       holder.itemContainer.setOnClickListener { onMainItemClick?.invoke(position) }
     }
@@ -88,8 +88,18 @@ class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHol
 
   override fun findItem(item: Audio): Int = items.indices.firstOrNull { items[it]?.url.equals(item.url) } ?: -1
 
-  fun updateCurrentAudio(audio: Audio) {
+  private fun loadImage(ivCover: SimpleDraweeView, coverUrl: String) {
+    val imageUri = Uri.parse(coverUrl.trim())
 
+    val imageRequest = ImageRequestBuilder
+            .newBuilderWithSource(imageUri)
+            .setResizeOptions(ResizeOptions(mImageWidth, mImageHeight))
+            .build()
+
+    ivCover.controller = Fresco.newDraweeControllerBuilder()
+            .setOldController(ivCover.controller)
+            .setImageRequest(imageRequest)
+            .build()
   }
 
   class ItemHolder(view: View) : RecyclerView.ViewHolder(view) {
