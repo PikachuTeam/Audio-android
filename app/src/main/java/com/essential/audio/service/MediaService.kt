@@ -255,8 +255,6 @@ class MediaService : Service() {
                   })
         }
         AudioState.STOP -> {
-          mPaused = true
-
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
           mNotificationHelper.createNotification(audio, false, false, false)

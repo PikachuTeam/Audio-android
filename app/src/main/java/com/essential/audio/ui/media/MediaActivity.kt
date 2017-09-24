@@ -66,11 +66,9 @@ class MediaActivity : BaseActivity(), MediaContract.View {
               currentPosition = 0
 
             if (audio.state == AudioState.PREPARING) {
-              mLoadingProgress.visibility = View.VISIBLE
-              mButtonPlayPause.visibility = View.INVISIBLE
+              showLoadingProgress(true)
             } else {
-              mLoadingProgress.visibility = View.INVISIBLE
-              mButtonPlayPause.visibility = View.VISIBLE
+              showLoadingProgress(false)
 
               mButtonPlayPause.setImageResource(
                       if (audio.state == AudioState.PLAYING ||

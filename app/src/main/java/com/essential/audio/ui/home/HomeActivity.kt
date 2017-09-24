@@ -88,7 +88,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             mPresenter.updateAudio(audio)
             when (audio.state) {
               AudioState.PREPARING -> {
-                if (mCanChangeScreen) {
+                if (mCanChangeScreen && !audio.locked) {
                   openMediaActivity()
                 }
                 mBottomSheetMediaPlayer.setAudioName(audio.name)

@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import com.essential.audio.data.model.Audio
 import com.essential.audio.data.model.AudioState
 
@@ -18,6 +19,10 @@ class MediaController {
   var currentPosition = -1
     get() = field
     set(value) {
+      // Update previous audio state
+      if (field != -1)
+        audios[field].state = AudioState.STOP
+      // Update current audio
       field = value
     }
 
@@ -125,14 +130,15 @@ class MediaController {
   fun stop() {
     if (player.isPlaying) {
       player.stop()
-
-      // Notify previous audio state changed
-      mCurrentAudio?.let {
-        it.state = AudioState.STOP
-        it.currentPosition = 0
-        onMediaStateChanged?.invoke(it)
-      }
     }
+
+    // Notify previous audio state changed
+    mCurrentAudio?.let {
+      it.state = AudioState.STOP
+      it.currentPosition = 0
+      onMediaStateChanged?.invoke(it)
+    }
+
     player.reset()
   }
 
@@ -197,6 +203,7 @@ class MediaController {
   }
 
   private fun prepare(audio: Audio) {
+    Log.e("Aloha", "Fuck")
     player.setDataSource(audio.url)
     player.prepareAsync()
     isPreparing = true

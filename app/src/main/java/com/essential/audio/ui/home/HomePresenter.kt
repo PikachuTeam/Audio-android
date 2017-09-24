@@ -96,7 +96,7 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
     // Update current list
     for (i in audios.indices) {
       mFilteredAudios[i]?.let {
-        if (it.locked != audios[i].locked || it.state != audios[i].state) {
+        if (it.equals(audios[i]) && (it.locked != audios[i].locked || it.state != audios[i].state)) {
           it.copyState(audios[i])
           view?.updateAdapter(i)
         }
