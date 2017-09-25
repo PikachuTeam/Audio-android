@@ -25,7 +25,6 @@ import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.common.ResizeOptions
 import com.facebook.imagepipeline.request.ImageRequestBuilder
 import com.google.gson.reflect.TypeToken
-import io.realm.RealmList
 import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
@@ -125,7 +124,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
           Constants.Action.MEDIA_UPDATE_LIST -> {
             val audiosJsonString = getStringExtra(Constants.Extra.AUDIOS)
             mPresenter.updateAudios(JsonHelper.instance
-                    .fromJson(audiosJsonString, object : TypeToken<RealmList<Audio>>() {}.type))
+                    .fromJson(audiosJsonString, object : TypeToken<MutableList<Audio>>() {}.type))
           }
         }
       }
@@ -198,10 +197,10 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     startActivity(Intent(this@HomeActivity, MediaActivity::class.java))
   }
 
-  override fun playAudios(audioUrls: MutableList<String>, chosenPosition: Int) {
+  override fun playAudios(audios: MutableList<Audio?>, chosenPosition: Int) {
     startService(Intent(this, MediaService::class.java).apply {
       action = Constants.Action.MEDIA_START
-      putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audioUrls))
+      putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
       putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
     })
   }
@@ -210,7 +209,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     mBottomSheetMediaPlayer.setAudioName(audio.name)
   }
 
-  override fun filter(filteredAudios: RealmList<Audio?>) {
+  override fun filter(filteredAudios: MutableList<Audio?>) {
     mAdapter.items = filteredAudios
   }
 
@@ -224,7 +223,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     }
   }
 
-  override fun refreshData(data: RealmList<Audio?>) {
+  override fun refreshData(data: MutableList<Audio?>) {
     if (data.isNotEmpty()) {
       mAdapter.items = data
       if (!mCbBoyVoice.isChecked && !mCbGirlVoice.isChecked) {

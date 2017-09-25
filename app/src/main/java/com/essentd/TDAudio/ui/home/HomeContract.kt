@@ -1,7 +1,6 @@
 package com.essentd.TDAudio.ui.home
 
 import com.essentd.TDAudio.data.model.Audio
-import io.realm.RealmList
 import selft.yue.basekotlin.common.BaseContract
 
 /**
@@ -11,15 +10,15 @@ interface HomeContract {
   interface View : BaseContract.View {
     fun openMediaActivity()
 
-    fun playAudios(audioUrls: MutableList<String>, chosenPosition: Int)
+    fun playAudios(audios: MutableList<Audio?>, chosenPosition: Int)
 
     fun updateUI(audio: Audio)
 
-    fun filter(filteredAudios: RealmList<Audio?>)
+    fun filter(filteredAudios: MutableList<Audio?>)
 
     fun updateAdapter(position: Int)
 
-    fun refreshData(data: RealmList<Audio?>)
+    fun refreshData(data: MutableList<Audio?>)
   }
 
   interface Presenter<V : View> : BaseContract.Presenter<V> {
@@ -36,6 +35,6 @@ interface HomeContract {
 
     fun updateAudio(audio: Audio)
 
-    fun updateAudios(audios: RealmList<Audio>)
+    fun updateAudios(audios: MutableList<Audio>)
   }
 }

@@ -2,7 +2,6 @@ package com.essentd.TDAudio.data
 
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.utils.OnRemoteResponse
-import io.realm.RealmList
 
 /**
  * Created by dongc on 9/1/2017.
@@ -15,9 +14,9 @@ interface AppDataSource {
    */
   fun fetchAudios(callback: OnRemoteResponse<MutableList<Audio?>>)
 
-  fun getAudios(callback: (data: RealmList<Audio?>) -> Unit)
+  fun getAudios(callback: ((data: MutableList<Audio?>) -> Unit)?)
 
   fun hasLocalAudios(): Boolean
 
-  fun updateAudios(audios: MutableList<Audio?>, onUpdateFinished: () -> Unit)
+  fun updateAudios(audios: MutableList<Audio?>, onUpdateFinished: (() -> Unit)?)
 }

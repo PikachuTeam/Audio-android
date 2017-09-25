@@ -8,8 +8,6 @@ import com.facebook.drawee.backends.pipeline.Fresco
 import com.google.android.gms.ads.MobileAds
 import com.parse.Parse
 import io.fabric.sdk.android.Fabric
-import io.realm.Realm
-import io.realm.RealmConfiguration
 
 /**
  * Created by dongc on 8/29/2017.
@@ -32,14 +30,6 @@ class AudioApplication : Application() {
     Fabric.with(fabric)
 
     MobileAds.initialize(this, "ca-app-pub-3786715234447481~8518196345")
-
-    // Configure realm
-    Realm.init(this)
-    val realmConfiguration = RealmConfiguration.Builder()
-            .name("TDAudio.realm")
-            .schemaVersion(1)
-            .build()
-    Realm.setDefaultConfiguration(realmConfiguration)
 
     CacheHelper.init(this)
   }

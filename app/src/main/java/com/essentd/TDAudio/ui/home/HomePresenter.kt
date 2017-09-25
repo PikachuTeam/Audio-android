@@ -7,7 +7,6 @@ import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 import com.essentd.TDAudio.utils.JsonHelper
 import com.essentd.TDAudio.utils.OnRemoteResponse
-import io.realm.RealmList
 import selft.yue.basekotlin.common.BasePresenter
 
 /**
@@ -15,8 +14,8 @@ import selft.yue.basekotlin.common.BasePresenter
  */
 class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), HomeContract.Presenter<V> {
   private val mDataSource: AppDataSource = AppRepository()
-  private val mAudios: RealmList<Audio?> = RealmList()
-  private val mFilteredAudios: RealmList<Audio?> = RealmList()
+  private val mAudios: MutableList<Audio?> = ArrayList()
+  private val mFilteredAudios: MutableList<Audio?> = ArrayList()
 
   override fun loadData(loadRemote: Boolean) {
     view?.run {
@@ -24,7 +23,6 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
       if (!loadRemote) {
         getLocalAudios()
       } else {
-        Log.e("LocalHelper", "load remote")
         mDataSource.fetchAudios(object : OnRemoteResponse<MutableList<Audio?>> {
           override fun onSuccess(data: MutableList<Audio?>) {
             mDataSource.updateAudios(data) {
@@ -42,13 +40,7 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
   }
 
   override fun playAudios(position: Int) {
-    val audioUrls: MutableList<String> = ArrayList()
-    mFilteredAudios.forEach { audio ->
-      audio?.let {
-        audioUrls.add(it.url)
-      }
-    }
-    view?.playAudios(audioUrls, position)
+    view?.playAudios(mFilteredAudios, position)
   }
 
   override fun updateData(audioJsonString: String) {
@@ -104,7 +96,7 @@ class HomePresenter<V : HomeContract.View>(view: V) : BasePresenter<V>(view), Ho
     }
   }
 
-  override fun updateAudios(audios: RealmList<Audio>) {
+  override fun updateAudios(audios: MutableList<Audio>) {
     // Update current list
     for (i in audios.indices) {
       mFilteredAudios[i]?.let {

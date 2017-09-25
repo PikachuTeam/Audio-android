@@ -9,6 +9,7 @@ object Constants {
   object Pref {
     val CURRENT_BACKGROUND_POSITION = "CURRENT_BACKGROUND_POSITION"
     val CURRENT_DATABASE_VERSION = "CURRENT_DATABASE_VERSION"
+    val AUDIOS = "AUDIOS"
   }
 
   object Extra {

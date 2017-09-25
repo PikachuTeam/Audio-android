@@ -1,24 +1,16 @@
 package com.essentd.TDAudio.data.model
 
-import io.realm.RealmObject
-import io.realm.annotations.Ignore
-import io.realm.annotations.PrimaryKey
-
 /**
  * Created by dongc on 8/29/2017.
  */
-open class Audio() : RealmObject() {
-  open var name: String = ""
-  @PrimaryKey
-  open var url: String = ""
-  open var isGirlVoice: Boolean = false
-  open var cover: String = ""
-  open var locked: Boolean = false
-  @Ignore
+open class Audio() {
+  var name: String = ""
+  var url: String = ""
+  var isGirlVoice: Boolean = false
+  var cover: String = ""
+  var locked: Boolean = false
   var state: String = AudioState.STOP.toString()
-  @Ignore
   var currentPosition = 0
-  @Ignore
   var duration: Int = 0
 
   constructor(name: String, url: String, isGirlVoice: Boolean, cover: String, locked: Boolean) : this() {
@@ -58,5 +50,8 @@ open class Audio() : RealmObject() {
     this.state = state.toString()
   }
 
-
+  fun resetState() {
+    currentPosition = 0
+    state = AudioState.STOP.toString()
+  }
 }

@@ -3,11 +3,12 @@ package com.essentd.TDAudio.utils
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.os.AsyncTask
+import android.os.AsyncTask.THREAD_POOL_EXECUTOR
 import android.os.Build
+import com.essentd.TDAudio.data.local.CacheHelper
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
-import io.realm.Realm
-import io.realm.RealmList
 
 /**
  * Created by dongc on 8/30/2017.
@@ -29,7 +30,7 @@ class MediaController {
 
   var isPreparing = false
 
-  var audios: RealmList<Audio> = RealmList()
+  var audios: MutableList<Audio> = ArrayList()
     set(value) {
       field = value
       currentPosition =
@@ -37,11 +38,15 @@ class MediaController {
               else value.indices.firstOrNull { value[it].equals(mCurrentAudio) } ?: -1
     }
 
+//  private lateinit var mAudios: RealmResults<Audio>
+
   private var mCurrentAudio: Audio? = null
 
   var onLockedAudioChoose: ((audio: Audio) -> Unit)? = null
 
   var onMediaStateChanged: ((audio: Audio) -> Unit)? = null
+
+//  private val mRealm = Realm.getDefaultInstance()
 
   // Constructor
   init {
@@ -172,13 +177,13 @@ class MediaController {
   fun unlockAudio() {
     mCurrentAudio?.locked = false
 
-    Realm.getDefaultInstance().executeTransactionAsync { realm ->
-      val updatedAudio = realm.where(Audio::class.java).findFirst()
-      updatedAudio?.locked = false
-      realm.close()
-    }
-
     start()
+
+    Thread({
+      mCurrentAudio?.let {
+        CacheHelper.updateAudio(it)
+      }
+    }).start()
   }
 
   fun setOnPreparedListener(onPreparedListener: MediaPlayer.OnPreparedListener) {
