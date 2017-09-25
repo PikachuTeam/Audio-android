@@ -31,6 +31,14 @@ open class Audio() : RealmObject() {
     return name == other.name && url == other.url && isGirlVoice == other.isGirlVoice && cover == other.cover
   }
 
+  override fun hashCode(): Int {
+    var result = name.hashCode()
+    result = 31 * result + url.hashCode()
+    result = 31 * result + isGirlVoice.hashCode()
+    result = 31 * result + cover.hashCode()
+    return result
+  }
+
   fun copyState(other: Audio?) {
     other?.let {
       locked = it.locked
