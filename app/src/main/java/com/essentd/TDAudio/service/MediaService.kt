@@ -11,8 +11,8 @@ import android.os.Handler
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AlertDialog
+import android.util.Log
 import android.view.WindowManager
-import android.widget.Toast
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 import com.essentd.TDAudio.utils.*
@@ -20,6 +20,8 @@ import com.google.android.gms.ads.reward.RewardItem
 import com.google.android.gms.ads.reward.RewardedVideoAdListener
 import com.google.gson.reflect.TypeToken
 import com.startapp.android.publish.adsCommon.VideoListener
+import io.realm.Realm
+import io.realm.RealmList
 
 /**
  * Created by dongc on 9/2/2017.
@@ -34,6 +36,8 @@ class MediaService : Service() {
 
   private var mPaused: Boolean = false
   private var mUnlocked: Boolean = false
+
+  private val mRealm = Realm.getDefaultInstance()
 
   private var mTimeHandler: Handler? = Handler()
   private val mUpdateTimeTask: Runnable = object : Runnable {
@@ -78,19 +82,36 @@ class MediaService : Service() {
     intent?.run {
       when (action) {
         Constants.Action.INIT -> {
-//          mAdController.loadGoogleVideo()
           mAdController.loadAd()
         }
         Constants.Action.MEDIA_START -> {
+          Log.e("HomeActivity", "MediaStart")
           val chosenAudio = getIntExtra(Constants.Extra.CHOSEN_AUDIO, 0)
           if (!mMediaController.isCurrentAudio(chosenAudio)) {
             mPaused = false
-            mMediaController.audios = JsonHelper.instance.fromJson(
+            val audioUrls: MutableList<String> = JsonHelper.instance.fromJson(
                     getStringExtra(Constants.Extra.AUDIOS),
-                    genericType<MutableList<Audio>>())
-            mMediaController.currentPosition = chosenAudio
+                    genericType<MutableList<String>>())
 
-            mMediaController.start()
+//            mRealm.executeTransactionAsync(Realm.Transaction { realm ->
+//              val
+//              audioUrls.forEach {
+//
+//              }
+//            }, Realm.Transaction.OnSuccess {
+//
+//            })
+            mRealm.executeTransaction { realm ->
+              val audios: RealmList<Audio> = RealmList()
+              audioUrls.forEach {
+                audios.add(realm.where(Audio::class.java).equalTo("url", it).findFirst())
+              }
+
+              mMediaController.audios = audios
+              mMediaController.currentPosition = chosenAudio
+              mMediaController.start()
+              realm.close()
+            }
           } else {
             if (mPaused) {
               mPaused = false
@@ -123,7 +144,7 @@ class MediaService : Service() {
           if (getBooleanExtra(Constants.Extra.UPDATE_CONTROLLER, false)) {
             mMediaController.audios = JsonHelper.instance.fromJson(
                     getStringExtra(Constants.Extra.AUDIOS),
-                    genericType<MutableList<Audio>>())
+                    genericType<RealmList<Audio>>())
           } else {
             LocalBroadcastManager.getInstance(this@MediaService)
                     .sendBroadcast(Intent(Constants.Action.MEDIA_UPDATE_LIST).apply {

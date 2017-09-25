@@ -1,30 +1,32 @@
 package com.essentd.TDAudio.ui.home
 
 import com.essentd.TDAudio.data.model.Audio
+import io.realm.RealmList
 import selft.yue.basekotlin.common.BaseContract
-import selft.yue.basekotlin.util.HasNormalRecyclerView
 
 /**
  * Created by dongc on 9/1/2017.
  */
 interface HomeContract {
-  interface View : BaseContract.View, HasNormalRecyclerView<Audio?> {
+  interface View : BaseContract.View {
     fun openMediaActivity()
 
-    fun playAudios(audios: MutableList<Audio?>, chosenPosition: Int)
+    fun playAudios(audioUrls: MutableList<String>, chosenPosition: Int)
 
     fun updateUI(audio: Audio)
 
-    fun filter(filteredAudios: MutableList<Audio?>)
+    fun filter(filteredAudios: RealmList<Audio?>)
 
     fun updateAdapter(position: Int)
+
+    fun refreshData(data: RealmList<Audio?>)
   }
 
   interface Presenter<V : View> : BaseContract.Presenter<V> {
     /**
      * Load data from remote or local
      */
-    fun loadData()
+    fun loadData(loadRemote: Boolean)
 
     fun playAudios(position: Int)
 
@@ -34,6 +36,6 @@ interface HomeContract {
 
     fun updateAudio(audio: Audio)
 
-    fun updateAudios(audios: MutableList<Audio>)
+    fun updateAudios(audios: RealmList<Audio>)
   }
 }

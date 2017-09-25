@@ -8,6 +8,7 @@ object Constants {
 
   object Pref {
     val CURRENT_BACKGROUND_POSITION = "CURRENT_BACKGROUND_POSITION"
+    val CURRENT_DATABASE_VERSION = "CURRENT_DATABASE_VERSION"
   }
 
   object Extra {
@@ -19,6 +20,8 @@ object Constants {
     val CURRENT_POSITION = "CURRENT_POSITION"
     val UPDATE_CONTROLLER = "UPDATE_CONTROLLER"
     val LOADING_AD = "LOADING_AD"
+    val CURRENT_AUDIO_VERSION = "CURRENT_AUDIO_VERSION"
+    val FETCH_REMOTE_DB = "FETCH_REMOTE_DB"
   }
 
   object Action {
@@ -44,5 +47,9 @@ object Constants {
     val PREVIEW_VERSION = "PREVIEW_VERSION"
     val PREVIEW_IMAGES = "PREVIEW_IMAGES"
     val ADS_AVAILABLE = "ADS_AVAILABLE"
+  }
+
+  object PermissionRequestCode {
+    val SYSTEM_ALERT = 1
   }
 }

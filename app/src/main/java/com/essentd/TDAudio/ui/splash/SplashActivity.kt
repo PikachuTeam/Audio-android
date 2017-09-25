@@ -1,12 +1,14 @@
 package com.essentd.TDAudio.ui.splash
 
-import android.app.AlertDialog
+import TDAudio.R
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
+import android.util.Log
 import android.view.ViewTreeObserver
-import TDAudio.R
+import com.essentd.TDAudio.data.local.CacheHelper
 import com.essentd.TDAudio.service.MediaService
 import com.essentd.TDAudio.ui.home.HomeActivity
 import com.essentd.TDAudio.utils.AdsController
@@ -32,6 +34,8 @@ class SplashActivity : BaseActivity() {
   private val mIvBackground: SimpleDraweeView by lazy { iv_background }
 
   private val mOnFirebaseFetchConfigComplete = OnCompleteListener<Void> { task ->
+    val currentDbVersion = CacheHelper.getDbVersion()
+    Log.e("SplashActivity", "Current DB Version: " + currentDbVersion)
     if (task.isSuccessful) {
       FirebaseRemoteConfig.getInstance().activateFetched()
 
@@ -58,22 +62,36 @@ class SplashActivity : BaseActivity() {
         }
       }
 
-      startActivity(Intent(this, HomeActivity::class.java))
+      Log.e("SplashActivity", "Audio Version: " + audioVersion)
+
+      if (audioVersion != currentDbVersion) {
+        CacheHelper.saveDbVersion(audioVersion)
+      }
+      startActivity(Intent(this, HomeActivity::class.java).apply {
+        putExtra(Constants.Extra.FETCH_REMOTE_DB, audioVersion != currentDbVersion)
+      })
       finish()
     } else {
-      AlertDialog.Builder(this)
-              .setMessage(
-                      if (isNetworkAvailable()) getString(R.string.fail_to_fetch_config)
-                      else getString(R.string.network_error)
-              )
-              .setPositiveButton(getString(R.string.try_again)) { dialog, _ ->
-                dialog.dismiss()
-                fetchFirebaseConfig()
-              }
-              .setNegativeButton(getString(R.string.exit_app)) { _, _ ->
-                finish()
-              }
-              .create().show()
+      if (currentDbVersion == 0L) {
+        AlertDialog.Builder(this)
+                .setMessage(
+                        if (isNetworkAvailable()) getString(R.string.fail_to_fetch_config)
+                        else getString(R.string.network_error)
+                )
+                .setPositiveButton(getString(R.string.try_again)) { dialog, _ ->
+                  dialog.dismiss()
+                  fetchFirebaseConfig()
+                }
+                .setNegativeButton(getString(R.string.exit_app)) { _, _ ->
+                  finish()
+                }
+                .create().show()
+      } else {
+        startActivity(Intent(this, HomeActivity::class.java).apply {
+          putExtra(Constants.Extra.FETCH_REMOTE_DB, false)
+        })
+        finish()
+      }
     }
   }
 

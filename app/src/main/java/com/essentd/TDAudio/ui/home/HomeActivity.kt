@@ -1,6 +1,7 @@
 package com.essentd.TDAudio.ui.home
 
 import TDAudio.R
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -17,7 +18,6 @@ import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 import com.essentd.TDAudio.service.MediaService
 import com.essentd.TDAudio.ui.media.MediaActivity
-import com.essentd.TDAudio.utils.AdsController
 import com.essentd.TDAudio.utils.Constants
 import com.essentd.TDAudio.utils.JsonHelper
 import com.facebook.common.util.UriUtil
@@ -25,6 +25,7 @@ import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.common.ResizeOptions
 import com.facebook.imagepipeline.request.ImageRequestBuilder
 import com.google.gson.reflect.TypeToken
+import io.realm.RealmList
 import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
@@ -45,8 +46,9 @@ class HomeActivity : BaseActivity(), HomeContract.View {
 
   private val mAdapter: AudiosAdapter = AudiosAdapter(this)
 
-  private var mCanExit = false
+  private var mCurrentPosition: Int = -1
 
+  private var mCanExit = false
   private var mCanChangeScreen = true
 
   private val mMediaControlReceiver = object : BroadcastReceiver() {
@@ -123,7 +125,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
           Constants.Action.MEDIA_UPDATE_LIST -> {
             val audiosJsonString = getStringExtra(Constants.Extra.AUDIOS)
             mPresenter.updateAudios(JsonHelper.instance
-                    .fromJson(audiosJsonString, object : TypeToken<MutableList<Audio>>() {}.type))
+                    .fromJson(audiosJsonString, object : TypeToken<RealmList<Audio>>() {}.type))
           }
         }
       }
@@ -140,7 +142,9 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     setEventListeners()
     setBackground()
 
-    mPresenter.loadData()
+    mPresenter.loadData(intent.getBooleanExtra(Constants.Extra.FETCH_REMOTE_DB, false))
+
+    checkAndRequestPermissions(Constants.PermissionRequestCode.SYSTEM_ALERT, arrayOf(Manifest.permission.SYSTEM_ALERT_WINDOW))
   }
 
   override fun onResume() {
@@ -189,7 +193,38 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     }
   }
 
-  override fun refreshData(data: MutableList<Audio?>) {
+  override fun openMediaActivity() {
+    LocalBroadcastManager.getInstance(this).unregisterReceiver(mMediaControlReceiver)
+    startActivity(Intent(this@HomeActivity, MediaActivity::class.java))
+  }
+
+  override fun playAudios(audioUrls: MutableList<String>, chosenPosition: Int) {
+    startService(Intent(this, MediaService::class.java).apply {
+      action = Constants.Action.MEDIA_START
+      putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audioUrls))
+      putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
+    })
+  }
+
+  override fun updateUI(audio: Audio) {
+    mBottomSheetMediaPlayer.setAudioName(audio.name)
+  }
+
+  override fun filter(filteredAudios: RealmList<Audio?>) {
+    mAdapter.items = filteredAudios
+  }
+
+  override fun updateAdapter(position: Int) {
+    mAdapter.notifyItemChanged(position)
+  }
+
+  override fun onPermissionGranted(requestCode: Int) {
+    if (requestCode == Constants.PermissionRequestCode.SYSTEM_ALERT) {
+      playAudio(mCurrentPosition)
+    }
+  }
+
+  override fun refreshData(data: RealmList<Audio?>) {
     if (data.isNotEmpty()) {
       mAdapter.items = data
       if (!mCbBoyVoice.isChecked && !mCbGirlVoice.isChecked) {
@@ -202,32 +237,6 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       }
     }
   }
-
-  override fun openMediaActivity() {
-    LocalBroadcastManager.getInstance(this).unregisterReceiver(mMediaControlReceiver)
-    startActivity(Intent(this@HomeActivity, MediaActivity::class.java))
-  }
-
-  override fun playAudios(audios: MutableList<Audio?>, chosenPosition: Int) {
-    startService(Intent(this, MediaService::class.java).apply {
-      action = Constants.Action.MEDIA_START
-      putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(audios))
-      putExtra(Constants.Extra.CHOSEN_AUDIO, chosenPosition)
-    })
-  }
-
-  override fun updateUI(audio: Audio) {
-    mBottomSheetMediaPlayer.setAudioName(audio.name)
-  }
-
-  override fun filter(filteredAudios: MutableList<Audio?>) {
-    mAdapter.items = filteredAudios
-  }
-
-  override fun updateAdapter(position: Int) {
-    mAdapter.notifyItemChanged(position)
-  }
-
 
   private fun setupToolbar() {
     setSupportActionBar(mToolbar)
@@ -247,12 +256,10 @@ class HomeActivity : BaseActivity(), HomeContract.View {
 
   private fun setEventListeners() {
     mAdapter.onMainItemClick = { position ->
-      if (mBottomSheetMediaPlayer.visibility == View.GONE)
-        mBottomSheetMediaPlayer.visibility = View.VISIBLE
-
-      mCanChangeScreen = true
-      // Move to media activity
-      mPresenter.playAudios(position)
+      if (checkAndRequestPermissions(Constants.PermissionRequestCode.SYSTEM_ALERT, arrayOf(Manifest.permission.SYSTEM_ALERT_WINDOW))) {
+        mCurrentPosition = position
+        playAudio(position)
+      }
     }
 
     mCbGirlVoice.setOnCheckedChangeListener { _, isChecked ->
@@ -347,5 +354,16 @@ class HomeActivity : BaseActivity(), HomeContract.View {
       putExtra(Constants.Extra.UPDATE_CONTROLLER, true)
       putExtra(Constants.Extra.AUDIOS, JsonHelper.instance.toJson(mAdapter.items))
     })
+  }
+
+  private fun playAudio(position: Int) {
+    if (position != -1) {
+      if (mBottomSheetMediaPlayer.visibility == View.GONE)
+        mBottomSheetMediaPlayer.visibility = View.VISIBLE
+
+      mCanChangeScreen = true
+      // Move to media activity
+      mPresenter.playAudios(position)
+    }
   }
 }

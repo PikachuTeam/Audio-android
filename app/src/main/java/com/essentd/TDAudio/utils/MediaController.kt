@@ -6,6 +6,8 @@ import android.media.MediaPlayer
 import android.os.Build
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
+import io.realm.Realm
+import io.realm.RealmList
 
 /**
  * Created by dongc on 8/30/2017.
@@ -27,7 +29,7 @@ class MediaController {
 
   var isPreparing = false
 
-  var audios: MutableList<Audio> = ArrayList()
+  var audios: RealmList<Audio> = RealmList()
     set(value) {
       field = value
       currentPosition =
@@ -169,6 +171,13 @@ class MediaController {
 
   fun unlockAudio() {
     mCurrentAudio?.locked = false
+
+    Realm.getDefaultInstance().executeTransactionAsync { realm ->
+      val updatedAudio = realm.where(Audio::class.java).findFirst()
+      updatedAudio?.locked = false
+      realm.close()
+    }
+
     start()
   }
 

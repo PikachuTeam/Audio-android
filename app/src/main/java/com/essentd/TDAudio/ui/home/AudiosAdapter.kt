@@ -3,7 +3,6 @@ package com.essentd.TDAudio.ui.home
 import TDAudio.R
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -11,18 +10,18 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import android.widget.TextView
+import com.essentd.TDAudio.base.BaseRealmAdapter
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.drawee.view.SimpleDraweeView
 import com.facebook.imagepipeline.common.ResizeOptions
 import com.facebook.imagepipeline.request.ImageRequestBuilder
-import selft.yue.basekotlin.adapter.normal.BaseAdapter
 
 /**
  * Created by dongc on 9/1/2017.
  */
-class AudiosAdapter(context: Context) : BaseAdapter<Audio, AudiosAdapter.ItemHolder>() {
+class AudiosAdapter(context: Context) : BaseRealmAdapter<Audio, AudiosAdapter.ItemHolder>() {
   enum class Voice {
     ALL, GIRL, BOY
   }

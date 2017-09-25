@@ -3,6 +3,7 @@ package com.essentd.TDAudio
 import TDAudio.R
 import android.app.Application
 import com.crashlytics.android.Crashlytics
+import com.essentd.TDAudio.data.local.CacheHelper
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.google.android.gms.ads.MobileAds
 import com.parse.Parse
@@ -39,5 +40,7 @@ class AudioApplication : Application() {
             .schemaVersion(1)
             .build()
     Realm.setDefaultConfiguration(realmConfiguration)
+
+    CacheHelper.init(this)
   }
 }
