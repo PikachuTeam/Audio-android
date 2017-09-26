@@ -38,15 +38,11 @@ class MediaController {
               else value.indices.firstOrNull { value[it].equals(mCurrentAudio) } ?: -1
     }
 
-//  private lateinit var mAudios: RealmResults<Audio>
-
   private var mCurrentAudio: Audio? = null
 
   var onLockedAudioChoose: ((audio: Audio) -> Unit)? = null
 
   var onMediaStateChanged: ((audio: Audio) -> Unit)? = null
-
-//  private val mRealm = Realm.getDefaultInstance()
 
   // Constructor
   init {
@@ -204,6 +200,7 @@ class MediaController {
     if (player.isPlaying)
       player.stop()
     player.release()
+    mCurrentAudio = null
   }
 
   private fun prepare(audio: Audio) {

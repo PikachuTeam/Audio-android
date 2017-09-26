@@ -16,6 +16,8 @@ import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import TDAudio.R
+import android.os.PowerManager
+import android.view.WindowManager
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 import com.essentd.TDAudio.service.MediaService
@@ -44,6 +46,8 @@ class MediaActivity : BaseActivity(), MediaContract.View {
 
   private var mIsPlaying: Boolean = false
 
+  private lateinit var mWakeLock: PowerManager.WakeLock
+
   private val mMediaControlReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       intent?.run {
@@ -65,19 +69,23 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             if (currentPosition < 0)
               currentPosition = 0
 
-            if (audio.getState() == AudioState.PREPARING) {
-              showLoadingProgress(true)
-            } else {
+            if (audio.locked) {
               showLoadingProgress(false)
+            } else {
+              if (audio.getState() == AudioState.PREPARING) {
+                showLoadingProgress(true)
+              } else {
+                showLoadingProgress(false)
 
-              mButtonPlayPause.setImageResource(
-                      if (audio.getState() == AudioState.PLAYING ||
-                              audio.getState() == AudioState.PREPARING ||
-                              audio.getState() == AudioState.PREPARED) {
-                        mIsPlaying = true
-                        R.drawable.ic_pause
-                      } else R.drawable.ic_play
-              )
+                mButtonPlayPause.setImageResource(
+                        if (audio.getState() == AudioState.PLAYING ||
+                                audio.getState() == AudioState.PREPARING ||
+                                audio.getState() == AudioState.PREPARED) {
+                          mIsPlaying = true
+                          R.drawable.ic_pause
+                        } else R.drawable.ic_play
+                )
+              }
             }
 
             if (mSeekBar.max != duration)
@@ -85,6 +93,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
             updateProgress(currentPosition, duration)
             mTvTitle.text = audio.name
           }
+
           Constants.Action.MEDIA_AUDIO_STATE_CHANGED -> {
             val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
             when (audio.getState()) {
@@ -125,6 +134,8 @@ class MediaActivity : BaseActivity(), MediaContract.View {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
+    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
     setupToolbar()
     setEventListeners()
   }
@@ -149,6 +160,7 @@ class MediaActivity : BaseActivity(), MediaContract.View {
 
   override fun onDestroy() {
     LocalBroadcastManager.getInstance(this).unregisterReceiver(mMediaControlReceiver)
+    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     mPresenter.dispose()
     super.onDestroy()
   }

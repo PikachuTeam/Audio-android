@@ -120,9 +120,9 @@ class MediaService : Service() {
         }
         Constants.Action.MEDIA_UPDATE_LIST -> {
           if (getBooleanExtra(Constants.Extra.UPDATE_CONTROLLER, false)) {
-//            mMediaController.audios = JsonHelper.instance.fromJson(
-//                    getStringExtra(Constants.Extra.AUDIOS),
-//                    genericType<RealmList<Audio>>())
+            mMediaController.audios = JsonHelper.instance.fromJson(
+                    getStringExtra(Constants.Extra.AUDIOS),
+                    genericType<MutableList<Audio>>())
           } else {
             LocalBroadcastManager.getInstance(this@MediaService)
                     .sendBroadcast(Intent(Constants.Action.MEDIA_UPDATE_LIST).apply {
@@ -214,18 +214,9 @@ class MediaService : Service() {
       val audioJson = JsonHelper.instance.toJson(audio)
       when (audio.getState()) {
         AudioState.PREPARING -> {
-          LocalBroadcastManager.getInstance(this)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
-                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
-                  })
-
           mNotificationHelper.createNotification(audio, false, true, true)
         }
         AudioState.PREPARED -> {
-          LocalBroadcastManager.getInstance(this)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
-                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
-                  })
           if (!mPaused) {
             mMediaController.play()
           }
@@ -234,33 +225,22 @@ class MediaService : Service() {
           mTimeHandler?.post(mUpdateTimeTask)
 
           mNotificationHelper.createNotification(audio, false, true, true)
-
-          LocalBroadcastManager.getInstance(this)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
-                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
-                  })
         }
         AudioState.PAUSE -> {
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
           mNotificationHelper.createNotification(audio, false, false, false)
-
-          LocalBroadcastManager.getInstance(this)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
-                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
-                  })
         }
         AudioState.STOP -> {
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
           mNotificationHelper.createNotification(audio, false, false, false)
-
-          LocalBroadcastManager.getInstance(this)
-                  .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
-                    putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
-                  })
         }
       }
+      LocalBroadcastManager.getInstance(this)
+              .sendBroadcast(Intent(Constants.Action.MEDIA_AUDIO_STATE_CHANGED).apply {
+                putExtra(Constants.Extra.CURRENT_AUDIO, audioJson)
+              })
     }
 
     mAdController.setGoogleVideoAdListener(object : RewardedVideoAdListener {
