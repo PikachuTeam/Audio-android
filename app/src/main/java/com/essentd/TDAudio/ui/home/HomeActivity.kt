@@ -2,14 +2,18 @@ package com.essentd.TDAudio.ui.home
 
 import TDAudio.R
 import android.Manifest
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
+import android.support.v4.app.ActivityCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
@@ -29,12 +33,17 @@ import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
 import selft.yue.basekotlin.extension.getRealColor
+import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
+import android.provider.Settings.canDrawOverlays
+import android.support.v7.app.AlertDialog
+
 
 /**
  * Created by dongc on 9/1/2017.
  */
 class HomeActivity : BaseActivity(), HomeContract.View {
   private val mPresenter: HomeContract.Presenter<HomeContract.View> = HomePresenter(this)
+  private val RC_OVERLAY = 1000
 
   private val mRvAudios by lazy { rv_audios }
   private val mToolbar by lazy { toolbar }
@@ -179,6 +188,14 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     super.onDestroy()
   }
 
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    if (requestCode == RC_OVERLAY) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
+        playAudio(mCurrentPosition)
+      }
+    }
+  }
+
   override fun onBackPressed() {
     if (mCanExit) {
       stopService(Intent(this, MediaService::class.java))
@@ -217,12 +234,6 @@ class HomeActivity : BaseActivity(), HomeContract.View {
     mAdapter.notifyItemChanged(position)
   }
 
-  override fun onPermissionGranted(requestCode: Int) {
-    if (requestCode == Constants.PermissionRequestCode.SYSTEM_ALERT) {
-      playAudio(mCurrentPosition)
-    }
-  }
-
   override fun refreshData(data: MutableList<Audio?>) {
     if (data.isNotEmpty()) {
       mAdapter.items = data
@@ -255,8 +266,29 @@ class HomeActivity : BaseActivity(), HomeContract.View {
 
   private fun setEventListeners() {
     mAdapter.onMainItemClick = { position ->
-      if (checkAndRequestPermissions(Constants.PermissionRequestCode.SYSTEM_ALERT, arrayOf(Manifest.permission.SYSTEM_ALERT_WINDOW))) {
-        mCurrentPosition = position
+
+      mCurrentPosition = position
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (!Settings.canDrawOverlays(this)) {
+          AlertDialog.Builder(this)
+                  .setTitle(getString(R.string.request_permission))
+                  .setMessage(getString(R.string.overlay_permission))
+                  .setPositiveButton(getString(R.string.agree)) { dialog, _ ->
+                    dialog.dismiss()
+
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:" + packageName))
+                    startActivityForResult(intent, RC_OVERLAY)
+                  }
+                  .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                  }
+                  .show()
+        } else {
+          playAudio(position)
+        }
+      } else {
         playAudio(position)
       }
     }
