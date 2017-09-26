@@ -1,6 +1,7 @@
 package com.essentd.TDAudio.service
 
 import TDAudio.R
+import android.app.Dialog
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -11,7 +12,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AlertDialog
-import android.util.Log
 import android.view.WindowManager
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
@@ -53,6 +53,8 @@ class MediaService : Service() {
       executeWork(intent)
     }
   }
+
+  private var mUnlockDialog: Dialog? = null
 
   override fun onCreate() {
     super.onCreate()
@@ -157,6 +159,12 @@ class MediaService : Service() {
           if (mPaused) {
             mTimeHandler?.post(mUpdateTimeTask)
           }
+
+          mUnlockDialog?.let {
+            if (it.isShowing)
+              it.dismiss()
+          }
+
           mMediaController.previous()
           mPaused = false
         }
@@ -164,6 +172,12 @@ class MediaService : Service() {
           if (mPaused) {
             mTimeHandler?.post(mUpdateTimeTask)
           }
+
+          mUnlockDialog?.let {
+            if (it.isShowing)
+              it.dismiss()
+          }
+
           mMediaController.next()
           mPaused = false
         }
@@ -194,20 +208,29 @@ class MediaService : Service() {
 
     mMediaController.onLockedAudioChoose = { audio ->
       mUnlocked = false
-      val dialog = AlertDialog.Builder(this, R.style.AppTheme_MaterialDialog)
-              .setMessage(getString(R.string.locked_item))
-              .setPositiveButton(getString(R.string.watch_to_unlock)) { d, _ ->
-                d.dismiss()
-                mAdController.showAd()
-              }
-              .setNegativeButton(getString(R.string.cancel)) { d, _ ->
-                d.dismiss()
-              }
-              .create()
 
-      dialog.window.setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT)
-      dialog.window.attributes.windowAnimations = R.style.DialogAnimation
-      dialog.show()
+      if (mUnlockDialog == null) {
+        mUnlockDialog = AlertDialog.Builder(this, R.style.AppTheme_MaterialDialog)
+                .setMessage(getString(R.string.locked_item))
+                .setPositiveButton(getString(R.string.watch_to_unlock)) { d, _ ->
+                  d.dismiss()
+                  mAdController.showAd()
+                }
+                .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                  d.dismiss()
+                }
+                .create()
+        mUnlockDialog?.let {
+          it.window.setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT)
+          it.window.attributes.windowAnimations = R.style.DialogAnimation
+        }
+      }
+
+      mUnlockDialog?.let {
+        if (!it.isShowing) {
+          it.show()
+        }
+      }
     }
 
     mMediaController.onMediaStateChanged = { audio ->
