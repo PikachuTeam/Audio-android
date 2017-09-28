@@ -89,11 +89,11 @@ class BackgroundController private constructor() {
     mIvBackground2 = ivBackground2
 
     mIvBackground1.hierarchy.setPlaceholderImage(
-            ContextCompat.getDrawable(mContext, R.drawable.app_background_2),
+            ContextCompat.getDrawable(mContext, R.drawable.app_background),
             ScalingUtils.ScaleType.CENTER_CROP
     )
     mIvBackground2.hierarchy.setPlaceholderImage(
-            ContextCompat.getDrawable(mContext, R.drawable.app_background_2),
+            ContextCompat.getDrawable(mContext, R.drawable.app_background),
             ScalingUtils.ScaleType.CENTER_CROP
     )
 

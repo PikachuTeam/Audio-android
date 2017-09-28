@@ -11,7 +11,7 @@ android {
         applicationId "com.essentd.TDAudio"
         minSdkVersion 15
         targetSdkVersion 26
-        versionCode 1
+        versionCode 4
         versionName "1.0"
     }
 

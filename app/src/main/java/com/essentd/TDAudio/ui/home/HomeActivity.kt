@@ -2,18 +2,15 @@ package com.essentd.TDAudio.ui.home
 
 import TDAudio.R
 import android.Manifest
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
-import android.support.v4.app.ActivityCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
@@ -33,8 +30,6 @@ import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
 import selft.yue.basekotlin.extension.getRealColor
-import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
-import android.provider.Settings.canDrawOverlays
 import android.support.v7.app.AlertDialog
 
 
@@ -353,7 +348,7 @@ class HomeActivity : BaseActivity(), HomeContract.View {
         else
           mIvBackground.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-        val temp = "" + R.drawable.app_background_2
+        val temp = "" + R.drawable.app_background
 
         val imageUri = Uri.Builder()
                 .scheme(UriUtil.LOCAL_RESOURCE_SCHEME)

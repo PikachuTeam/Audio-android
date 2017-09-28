@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
-import android.util.Log
 import android.view.ViewTreeObserver
 import com.essentd.TDAudio.data.local.CacheHelper
 import com.essentd.TDAudio.service.MediaService
@@ -35,18 +34,11 @@ class SplashActivity : BaseActivity() {
 
   private val mOnFirebaseFetchConfigComplete = OnCompleteListener<Void> { task ->
     val currentDbVersion = CacheHelper.getDbVersion()
-    Log.e("SplashActivity", "Current DB Version: " + currentDbVersion)
     if (task.isSuccessful) {
       FirebaseRemoteConfig.getInstance().activateFetched()
 
       val audioVersion = FirebaseRemoteConfig.getInstance().getLong(Constants.FirebaseConfig.AUDIO_VERSION)
-      val previewVersion = FirebaseRemoteConfig.getInstance().getLong(Constants.FirebaseConfig.PREVIEW_VERSION)
-      val packageInfo = packageManager.getPackageInfo(packageName, 0)
-      val images: String =
-              if (previewVersion == 0L || previewVersion != packageInfo.versionCode.toLong())
-                FirebaseRemoteConfig.getInstance().getString(Constants.FirebaseConfig.IMAGES)
-              else
-                FirebaseRemoteConfig.getInstance().getString(Constants.FirebaseConfig.PREVIEW_IMAGES)
+      val images: String = FirebaseRemoteConfig.getInstance().getString(Constants.FirebaseConfig.IMAGES)
       val adsAvailable = FirebaseRemoteConfig.getInstance().getString(Constants.FirebaseConfig.ADS_AVAILABLE)
       FirebaseRemoteConfig.getInstance().activateFetched()
       BackgroundController.instance.setBackgroundImages(images)
@@ -61,8 +53,6 @@ class SplashActivity : BaseActivity() {
           AdsController.adMode = AdsController.START_APP
         }
       }
-
-      Log.e("SplashActivity", "Audio Version: " + audioVersion)
 
       if (audioVersion != currentDbVersion) {
         CacheHelper.saveDbVersion(audioVersion)
@@ -121,7 +111,7 @@ class SplashActivity : BaseActivity() {
         else
           mIvBackground.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-        val temp = "" + R.drawable.app_background_2
+        val temp = "" + R.drawable.app_background
 
         val imageUri = Uri.Builder()
                 .scheme(UriUtil.LOCAL_RESOURCE_SCHEME)
