@@ -1,5 +1,6 @@
 package com.essentd.TDAudio.data.remote
 
+import TDAudio.BuildConfig
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.utils.OnRemoteResponse
 import com.essentd.TDAudio.utils.Tables
@@ -38,8 +39,8 @@ object RemoteHelper {
   }
 
   fun fetchTdAudios(callback: OnRemoteResponse<MutableList<Audio?>>) {
-    val query: ParseQuery<ParseObject> = ParseQuery.getQuery(Tables.TdAudio.NAME)
-    query.findInBackground { parseObjects, ex ->
+    val query: ParseQuery<ParseObject> = ParseQuery.getQuery(BuildConfig.TABLE_NAME)
+    query.addAscendingOrder("order").findInBackground { parseObjects, ex ->
       if (ex == null) {
         if (parseObjects.size == 0) {
           callback.onError(Throwable("No results"))

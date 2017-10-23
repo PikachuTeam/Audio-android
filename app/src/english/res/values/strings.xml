@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Thiên Địa Audio English</string>
+
+    <string name="boy">Man</string>
+    <string name="girl">Woman</string>
+    <string name="list">List</string>
+    <string name="try_again">Try again</string>
+    <string name="exit_app">Exit</string>
+    <string name="fail_to_fetch_config">Cannot download data.</string>
+    <string name="network_error">Network error.</string>
+    <string name="press_again_to_exit">Press again to exit</string>
+
+    <string name="locked_item">This audio is locked! Watch a video ad to unlock?</string>
+    <string name="watch_to_unlock">Watch</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="request_permission">Request permission</string>
+    <string name="overlay_permission">This application needs the permission \"Application overlay\" to use the system dialog. Please grant us permission</string>
+    <string name="agree">Agree</string>
+</resources>

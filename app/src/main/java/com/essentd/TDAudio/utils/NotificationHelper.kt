@@ -6,10 +6,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.support.v4.app.NotificationCompat
 import android.graphics.BitmapFactory
-import android.support.v4.app.TaskStackBuilder
-import android.util.Log
+import android.support.v4.app.NotificationCompat
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.ui.home.HomeActivity
 import com.essentd.TDAudio.ui.media.MediaActivity
@@ -29,15 +27,16 @@ class NotificationHelper(private var context: Context) {
   private val mPauseIntent = Intent(Constants.Action.MEDIA_PAUSE)
   private val mNextIntent = Intent(Constants.Action.MEDIA_NEXT)
   private val mediaIntent = Intent(mContext, MediaActivity::class.java)
+  private val homeIntent = Intent(mContext, HomeActivity::class.java)
 
   private val mPreviousPendingIntent: PendingIntent = PendingIntent.getBroadcast(context, 1, mPreviousIntent, PendingIntent.FLAG_UPDATE_CURRENT)
   private val mPlayPendingIntent: PendingIntent = PendingIntent.getBroadcast(context, 1, mPlayIntent, PendingIntent.FLAG_UPDATE_CURRENT)
   private val mPausePendingIntent: PendingIntent = PendingIntent.getBroadcast(context, 1, mPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)
   private val mNextPendingIntent: PendingIntent = PendingIntent.getBroadcast(context, 1, mNextIntent, PendingIntent.FLAG_UPDATE_CURRENT)
   private val mediaPendingIntent = PendingIntent.getActivity(mContext, 2, mediaIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+  private val homePendingIntent = PendingIntent.getActivity(mContext, 2, homeIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-  fun createNotification(audio: Audio, cancelable: Boolean, isPlaying: Boolean, onGoing: Boolean) {
-    Log.e("Notification", "create")
+  fun createNotification(audio: Audio, cancelable: Boolean, isPlaying: Boolean, onGoing: Boolean, openSplash: Boolean) {
     mNotificationManager.notify(NOTIFICATION_ID, NotificationCompat.Builder(context, CHANNEL_ID)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setSmallIcon(R.mipmap.ic_launcher)
@@ -54,7 +53,8 @@ class NotificationHelper(private var context: Context) {
             .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
                     .setShowActionsInCompactView(1, 2))
             .setContentTitle(audio.name)
-            .setContentIntent(mediaPendingIntent)
+            .setContentIntent(
+                    if (!openSplash) mediaPendingIntent else homePendingIntent)
             .build())
   }
 

@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Thiên Địa Audio</string>
-
     <string name="boy">Giọng nam</string>
     <string name="girl">Giọng nữ</string>
     <string name="list">Danh sách</string>
@@ -13,8 +12,10 @@
     <string name="locked_item">Bài này đang bị khóa! Xem video để mở khóa?</string>
     <string name="watch_to_unlock">Xem</string>
     <string name="cancel">Bỏ qua</string>
-    
+
     <string name="request_permission">Cấp quyền</string>
-    <string name="overlay_permission">Ứng dụng này cần được cấp quyền \"Vẽ lên trên ứng dụng khác\" để có thể sử dụng hộp thoại hệ thống. Đồng ý cấp quyền?</string>
+    <string name="overlay_permission">Ứng dụng này cần được cấp quyền \"Vẽ lên trên ứng dụng khác\"
+        để có thể sử dụng hộp thoại hệ thống. Đồng ý cấp quyền?
+    </string>
     <string name="agree">Đồng ý</string>
 </resources>

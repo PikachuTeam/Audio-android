@@ -57,6 +57,7 @@ class SplashActivity : BaseActivity() {
       if (audioVersion != currentDbVersion) {
         CacheHelper.saveDbVersion(audioVersion)
       }
+
       startActivity(Intent(this, HomeActivity::class.java).apply {
         putExtra(Constants.Extra.FETCH_REMOTE_DB, audioVersion != currentDbVersion)
       })
@@ -91,8 +92,6 @@ class SplashActivity : BaseActivity() {
     super.onCreate(savedInstanceState)
 
     setBackground()
-
-    BackgroundController.instance.init(this)
 
     AdsController.init(this)
 

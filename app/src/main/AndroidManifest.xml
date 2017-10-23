@@ -34,6 +34,7 @@
 
         <activity
             android:name="com.essentd.TDAudio.ui.home.HomeActivity"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait"/>
 
         <activity
@@ -64,7 +65,9 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="com.essentd.TDAudio.service.MediaService"/>
+        <service
+            android:name="com.essentd.TDAudio.service.MediaService"
+            android:stopWithTask="false"/>
 
         <meta-data
             android:name="io.fabric.ApiKey"

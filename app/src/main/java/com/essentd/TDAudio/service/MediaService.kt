@@ -114,10 +114,12 @@ class MediaService : Service() {
                             Constants.Extra.DURATION,
                             if (mMediaController.isPreparing) 0 else mMediaController.player.duration
                     )
-                    putExtra(
-                            Constants.Extra.CURRENT_AUDIO,
-                            JsonHelper.instance.toJson(mMediaController.getCurrentAudio())
-                    )
+                    mMediaController.getCurrentAudio()?.let {
+                      putExtra(
+                              Constants.Extra.CURRENT_AUDIO,
+                              JsonHelper.instance.toJson(it)
+                      )
+                    }
                   })
         }
         Constants.Action.MEDIA_UPDATE_LIST -> {
@@ -135,16 +137,20 @@ class MediaService : Service() {
         else -> executeWork(intent)
       }
     }
-    return START_STICKY
+    return START_NOT_STICKY
   }
 
   override fun onDestroy() {
     unregisterReceiver(mMediaControlReceiver)
-    mMediaController.dispose()
-    mMediaController.removeOnPreparedListener()
     mNotificationHelper.deleteNotification()
+    mMediaController.removeOnPreparedListener()
     mTimeHandler?.removeCallbacks(mUpdateTimeTask)
+    mMediaController.dispose()
     super.onDestroy()
+  }
+
+  override fun onTaskRemoved(rootIntent: Intent?) {
+    stopSelf()
   }
 
   private fun executeWork(intent: Intent?) {
@@ -237,7 +243,7 @@ class MediaService : Service() {
       val audioJson = JsonHelper.instance.toJson(audio)
       when (audio.getState()) {
         AudioState.PREPARING -> {
-          mNotificationHelper.createNotification(audio, false, true, true)
+          mNotificationHelper.createNotification(audio, false, true, true, false)
         }
         AudioState.PREPARED -> {
           if (!mPaused) {
@@ -247,17 +253,17 @@ class MediaService : Service() {
         AudioState.PLAYING -> {
           mTimeHandler?.post(mUpdateTimeTask)
 
-          mNotificationHelper.createNotification(audio, false, true, true)
+          mNotificationHelper.createNotification(audio, false, true, true, false)
         }
         AudioState.PAUSE -> {
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
-          mNotificationHelper.createNotification(audio, false, false, false)
+          mNotificationHelper.createNotification(audio, true, false, false, false)
         }
         AudioState.STOP -> {
           mTimeHandler?.removeCallbacks(mUpdateTimeTask)
 
-          mNotificationHelper.createNotification(audio, false, false, false)
+          mNotificationHelper.createNotification(audio, true, false, false, true)
         }
       }
       LocalBroadcastManager.getInstance(this)

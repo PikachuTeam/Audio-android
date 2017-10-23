@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
 import android.support.v4.content.LocalBroadcastManager
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.view.ViewTreeObserver
@@ -30,7 +31,6 @@ import kotlinx.android.synthetic.main.activity_home.*
 import selft.yue.basekotlin.activity.BaseActivity
 import selft.yue.basekotlin.decoration.LinearItemDecoration
 import selft.yue.basekotlin.extension.getRealColor
-import android.support.v7.app.AlertDialog
 
 
 /**
@@ -70,23 +70,25 @@ class HomeActivity : BaseActivity(), HomeContract.View {
             mBottomSheetMediaPlayer.setProgress(currentPosition)
           }
           Constants.Action.MEDIA_GET_CURRENT_STATE -> {
-            var duration = getIntExtra(Constants.Extra.DURATION, 0)
-            var progress = getIntExtra(Constants.Extra.PROGRESS, 0)
-            val currentAudio = JsonHelper.instance
-                    .fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+            if (hasExtra(Constants.Extra.CURRENT_AUDIO)) {
+              var duration = getIntExtra(Constants.Extra.DURATION, 0)
+              var progress = getIntExtra(Constants.Extra.PROGRESS, 0)
+              val currentAudio = JsonHelper.instance
+                      .fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
 
-            if (duration < 0)
-              duration = 0
-            if (progress < 0)
-              progress = 0
+              if (duration < 0)
+                duration = 0
+              if (progress < 0)
+                progress = 0
 
-            mBottomSheetMediaPlayer.setAudioName(currentAudio.name)
-            mBottomSheetMediaPlayer.isPlaying = currentAudio.getState() == AudioState.PLAYING ||
-                    currentAudio.getState() == AudioState.PREPARED || currentAudio.getState() == AudioState.PREPARING
-            mBottomSheetMediaPlayer.setMax(duration)
-            mBottomSheetMediaPlayer.setProgress(progress)
+              mBottomSheetMediaPlayer.setAudioName(currentAudio.name)
+              mBottomSheetMediaPlayer.isPlaying = currentAudio.getState() == AudioState.PLAYING ||
+                      currentAudio.getState() == AudioState.PREPARED || currentAudio.getState() == AudioState.PREPARING
+              mBottomSheetMediaPlayer.setMax(duration)
+              mBottomSheetMediaPlayer.setProgress(progress)
 
-            mPresenter.updateAudio(currentAudio)
+              mPresenter.updateAudio(currentAudio)
+            }
           }
           Constants.Action.MEDIA_AUDIO_STATE_CHANGED -> {
             val audio = JsonHelper.instance

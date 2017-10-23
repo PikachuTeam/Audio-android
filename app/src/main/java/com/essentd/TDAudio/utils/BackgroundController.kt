@@ -1,5 +1,6 @@
 package com.essentd.TDAudio.utils
 
+import TDAudio.R
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Context
@@ -9,7 +10,6 @@ import android.os.Build
 import android.os.CountDownTimer
 import android.support.v4.content.ContextCompat
 import android.view.ViewTreeObserver
-import TDAudio.R
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.drawee.drawable.ScalingUtils
 import com.facebook.drawee.view.SimpleDraweeView
@@ -118,26 +118,30 @@ class BackgroundController private constructor() {
   }
 
   private fun play() {
-    mCurrentPosition++
-    if (mCurrentPosition >= mBackgroundImages.size)
-      mCurrentPosition = 0
+    if (mBackgroundImages.size > 0) {
+      mCurrentPosition++
+      if (mCurrentPosition >= mBackgroundImages.size)
+        mCurrentPosition = 0
 
-    // Set image for background
-    var imageUrl = mBackgroundImages[mCurrentPosition]
-    setImageBackground(mIvBackground1, imageUrl)
+      // Set image for background
+      var imageUrl = mBackgroundImages[mCurrentPosition]
+      setImageBackground(mIvBackground1, imageUrl)
 
-    backgroundTimer.start()
+      backgroundTimer.start()
+    }
   }
 
   private fun show1() {
     mIvBackground1.animate().alpha(1f).setDuration(ANIMATION_DURATION).setListener(null)
     mIvBackground2.animate().alpha(0f).setDuration(ANIMATION_DURATION).setListener(object : AnimatorListenerAdapter() {
       override fun onAnimationEnd(animation: Animator?) {
-        mCurrentPosition++
-        if (mCurrentPosition >= mBackgroundImages.size)
-          mCurrentPosition = 0
+        if (mBackgroundImages.size > 0) {
+          mCurrentPosition++
+          if (mCurrentPosition >= mBackgroundImages.size)
+            mCurrentPosition = 0
 
-        setImageBackground(mIvBackground2, mBackgroundImages[mCurrentPosition])
+          setImageBackground(mIvBackground2, mBackgroundImages[mCurrentPosition])
+        }
       }
     })
   }
@@ -145,11 +149,13 @@ class BackgroundController private constructor() {
   private fun show2() {
     mIvBackground1.animate().alpha(0f).setDuration(ANIMATION_DURATION).setListener(object : AnimatorListenerAdapter() {
       override fun onAnimationEnd(animation: Animator?) {
-        mCurrentPosition++
-        if (mCurrentPosition >= mBackgroundImages.size)
-          mCurrentPosition = 0
+        if (mBackgroundImages.size > 0) {
+          mCurrentPosition++
+          if (mCurrentPosition >= mBackgroundImages.size)
+            mCurrentPosition = 0
 
-        setImageBackground(mIvBackground1, mBackgroundImages[mCurrentPosition])
+          setImageBackground(mIvBackground1, mBackgroundImages[mCurrentPosition])
+        }
       }
     })
     mIvBackground2.animate().alpha(1f).setDuration(ANIMATION_DURATION).setListener(null)

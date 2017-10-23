@@ -22,9 +22,20 @@ android {
         }
     }
 
-    android {
-        dexOptions {
-            jumboMode = true
+    dexOptions {
+        jumboMode = true
+    }
+
+    productFlavors {
+        vietnam {
+            applicationId "com.essentd.vietnam.TDAudio"
+            buildConfigField "String", "TABLE_NAME", "\"tbl_tdaudio\""
+            resValue "string", "app_name", "Thiên Địa Audio"
+        }
+        english {
+            applicationId "com.essentd.english.TDAudio"
+            buildConfigField "String", "TABLE_NAME", "\"tbl_tdaudio_english\""
+            resValue "string", "app_name", "Thiên Địa Audio English"
         }
     }
 }

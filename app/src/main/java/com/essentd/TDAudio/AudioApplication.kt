@@ -4,6 +4,7 @@ import TDAudio.R
 import android.app.Application
 import com.crashlytics.android.Crashlytics
 import com.essentd.TDAudio.data.local.CacheHelper
+import com.essentd.TDAudio.utils.BackgroundController
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.google.android.gms.ads.MobileAds
 import com.parse.Parse
@@ -32,5 +33,7 @@ class AudioApplication : Application() {
     MobileAds.initialize(this, "ca-app-pub-3786715234447481~8518196345")
 
     CacheHelper.init(this)
+
+    BackgroundController.instance.init(this)
   }
 }
