@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Thiên Địa Audio English</string>
+    <string name="app_name">Riveting Stories</string>
 
     <string name="boy">Man</string>
     <string name="girl">Woman</string>
@@ -17,4 +17,6 @@
     <string name="request_permission">Request permission</string>
     <string name="overlay_permission">This application needs the permission \"Application overlay\" to use the system dialog. Please grant us permission</string>
     <string name="agree">Agree</string>
+
+    <string name="splash_screen_primary_text">Riveting Stories</string>
 </resources>

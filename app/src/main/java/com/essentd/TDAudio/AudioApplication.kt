@@ -1,5 +1,6 @@
 package com.essentd.TDAudio
 
+import TDAudio.BuildConfig
 import TDAudio.R
 import android.app.Application
 import com.crashlytics.android.Crashlytics
@@ -30,7 +31,7 @@ class AudioApplication : Application() {
             .build()
     Fabric.with(fabric)
 
-    MobileAds.initialize(this, "ca-app-pub-3786715234447481~8518196345")
+    MobileAds.initialize(this, BuildConfig.AD_APP_ID)
 
     CacheHelper.init(this)
 

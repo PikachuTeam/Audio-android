@@ -18,7 +18,6 @@ import com.startapp.android.publish.adsCommon.adListeners.AdEventListener
  * Created by dong on 24/09/2017.
  */
 class AdsController constructor(context: Context) {
-  private val GOOGLE_VIDEO_AD_REAL_ID = "ca-app-pub-3786715234447481/1761216300"
   private val GOOGLE_VIDEO_AD_TEST_ID = "ca-app-pub-3940256099942544/5224354917"
 
   private val mGoogleVideoAd: RewardedVideoAd = MobileAds.getRewardedVideoAdInstance(context)
@@ -85,7 +84,7 @@ class AdsController constructor(context: Context) {
         )
       else
         mGoogleVideoAd.loadAd(
-                GOOGLE_VIDEO_AD_REAL_ID,
+                BuildConfig.GG_AD_REAL_ID,
                 AdRequest.Builder().build()
         )
     }
