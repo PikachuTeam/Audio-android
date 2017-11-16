@@ -26,16 +26,16 @@ android {
     productFlavors {
         vietnam {
             applicationId "com.essentd.TDAudio"
-            versionCode 7
-            versionName "1.3"
+            versionCode 9
+            versionName "1.5"
             buildConfigField "String", "TABLE_NAME", "\"tbl_tdaudio\""
             buildConfigField "String", "AD_APP_ID", "\"ca-app-pub-3786715234447481~8518196345\""
             buildConfigField "String", "GG_AD_REAL_ID", "\"ca-app-pub-3786715234447481/1761216300\""
         }
         english {
             applicationId "com.essentd.english.TDAudio"
-            versionCode 1
-            versionName "1.0"
+            versionCode 3
+            versionName "1.2"
             buildConfigField "String", "TABLE_NAME", "\"tbl_tdaudio_english\""
             buildConfigField "String", "AD_APP_ID", "\"ca-app-pub-3786715234447481~3941007105\""
             buildConfigField "String", "GG_AD_REAL_ID", "\"ca-app-pub-3786715234447481/3744608128\""

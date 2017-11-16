@@ -1,23 +1,23 @@
 package com.essentd.TDAudio.ui.media
 
+import TDAudio.R
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.PowerManager
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.widget.AppCompatSeekBar
 import android.support.v7.widget.Toolbar
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
-import TDAudio.R
-import android.os.PowerManager
-import android.view.WindowManager
 import com.essentd.TDAudio.data.model.Audio
 import com.essentd.TDAudio.data.model.AudioState
 import com.essentd.TDAudio.service.MediaService
@@ -62,36 +62,38 @@ class MediaActivity : BaseActivity(), MediaContract.View {
           Constants.Action.MEDIA_GET_CURRENT_STATE -> {
             var duration = getIntExtra(Constants.Extra.DURATION, 0)
             var currentPosition = getIntExtra(Constants.Extra.PROGRESS, 0)
-            val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
+            if (hasExtra(Constants.Extra.CURRENT_AUDIO)) {
+              val audio = JsonHelper.instance.fromJson(getStringExtra(Constants.Extra.CURRENT_AUDIO), Audio::class.java)
 
-            if (duration < 0)
-              duration = 0
-            if (currentPosition < 0)
-              currentPosition = 0
+              if (duration < 0)
+                duration = 0
+              if (currentPosition < 0)
+                currentPosition = 0
 
-            if (audio.locked) {
-              showLoadingProgress(false)
-            } else {
-              if (audio.getState() == AudioState.PREPARING) {
-                showLoadingProgress(true)
-              } else {
+              if (audio.locked) {
                 showLoadingProgress(false)
+              } else {
+                if (audio.getState() == AudioState.PREPARING) {
+                  showLoadingProgress(true)
+                } else {
+                  showLoadingProgress(false)
 
-                mButtonPlayPause.setImageResource(
-                        if (audio.getState() == AudioState.PLAYING ||
-                                audio.getState() == AudioState.PREPARING ||
-                                audio.getState() == AudioState.PREPARED) {
-                          mIsPlaying = true
-                          R.drawable.ic_pause
-                        } else R.drawable.ic_play
-                )
+                  mButtonPlayPause.setImageResource(
+                          if (audio.getState() == AudioState.PLAYING ||
+                                  audio.getState() == AudioState.PREPARING ||
+                                  audio.getState() == AudioState.PREPARED) {
+                            mIsPlaying = true
+                            R.drawable.ic_pause
+                          } else R.drawable.ic_play
+                  )
+                }
               }
-            }
 
-            if (mSeekBar.max != duration)
-              mSeekBar.max = duration
-            updateProgress(currentPosition, duration)
-            mTvTitle.text = audio.name
+              if (mSeekBar.max != duration)
+                mSeekBar.max = duration
+              updateProgress(currentPosition, duration)
+              mTvTitle.text = audio.name
+            }
           }
 
           Constants.Action.MEDIA_AUDIO_STATE_CHANGED -> {
@@ -151,11 +153,6 @@ class MediaActivity : BaseActivity(), MediaContract.View {
 
     BackgroundController.instance.playBackgrounds(iv_background_1, iv_background_2)
     super.onResume()
-  }
-
-  override fun onStop() {
-    BackgroundController.instance.stop()
-    super.onStop()
   }
 
   override fun onDestroy() {

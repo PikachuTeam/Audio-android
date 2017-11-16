@@ -44,9 +44,11 @@ class AdsController constructor(context: Context) {
   fun loadAd() {
     when (adMode) {
       GOOGLE -> {
+        Log.e("Loadng", "Google")
         loadGoogleVideo()
       }
       START_APP -> {
+        Log.e("Loadng", "StartApp")
         loadStartAppVideo()
       }
       else -> {
@@ -75,8 +77,9 @@ class AdsController constructor(context: Context) {
     mGoogleVideoAd.rewardedVideoAdListener = rewardedVideoAdListener
   }
 
-  fun loadGoogleVideo() {
+  private fun loadGoogleVideo() {
     if (!mGoogleVideoAd.isLoaded) {
+      mIsGoogleAdTurn=true
       if (BuildConfig.DEBUG)
         mGoogleVideoAd.loadAd(
                 GOOGLE_VIDEO_AD_TEST_ID,
@@ -104,6 +107,7 @@ class AdsController constructor(context: Context) {
   }
 
   private fun loadStartAppVideo() {
+    mIsGoogleAdTurn=false
     mStartAppAd.loadAd(StartAppAd.AdMode.REWARDED_VIDEO, object : AdEventListener {
       override fun onReceiveAd(ad: Ad?) {
       }

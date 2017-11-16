@@ -114,10 +114,10 @@ class MediaService : Service() {
                             Constants.Extra.DURATION,
                             if (mMediaController.isPreparing) 0 else mMediaController.player.duration
                     )
-                    mMediaController.getCurrentAudio()?.let {
+                    mMediaController.getCurrentAudio()?.let { audio ->
                       putExtra(
                               Constants.Extra.CURRENT_AUDIO,
-                              JsonHelper.instance.toJson(it)
+                              JsonHelper.instance.toJson(audio)
                       )
                     }
                   })

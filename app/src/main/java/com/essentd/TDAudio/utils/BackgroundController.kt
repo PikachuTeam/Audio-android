@@ -120,7 +120,7 @@ class BackgroundController private constructor() {
   private fun play() {
     if (mBackgroundImages.size > 0) {
       mCurrentPosition++
-      if (mCurrentPosition >= mBackgroundImages.size)
+      if (mCurrentPosition >= mBackgroundImages.size || mCurrentPosition < 0)
         mCurrentPosition = 0
 
       // Set image for background

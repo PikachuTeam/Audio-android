@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
+import android.util.Log
 import android.view.ViewTreeObserver
 import com.essentd.TDAudio.data.local.CacheHelper
 import com.essentd.TDAudio.service.MediaService
@@ -43,11 +44,13 @@ class SplashActivity : BaseActivity() {
       FirebaseRemoteConfig.getInstance().activateFetched()
       BackgroundController.instance.setBackgroundImages(images)
 
+      Log.e("Check ad", "" + adsAvailable)
+
       val ads = adsAvailable.split(',')
-      if (ads.size > 1) {
+      if (ads.size > 2) {
         AdsController.adMode = AdsController.ALL
       } else {
-        if (ads[0] == "admob") {
+        if (ads[0].equals("admob",ignoreCase = false)) {
           AdsController.adMode = AdsController.GOOGLE
         } else {
           AdsController.adMode = AdsController.START_APP
@@ -131,6 +134,7 @@ class SplashActivity : BaseActivity() {
   }
 
   private fun fetchFirebaseConfig() {
+    Log.e("Check", "FetchFirebase")
     FirebaseRemoteConfig.getInstance().fetch(CACHE_EXPIRATION)
             .addOnCompleteListener(this, mOnFirebaseFetchConfigComplete)
   }
